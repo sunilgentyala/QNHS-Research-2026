@@ -1,0 +1,121 @@
+
+############################################################
+  QNHS Research Simulation Suite
+  IEEE-NANO 2026 | Sunil Gentyala | ORCID: 0009-0005-2642-3479
+  Run date: 2026-05-25 21:47
+  GitHub: https://github.com/sunilgentyala/QNHS-Research-2026
+############################################################
+
+============================================================
+  1. QNHS Energy Model (Eq. 3 in paper)
+============================================================
+=======================================================
+  QNHS Synaptic Event Energy Budget
+=======================================================
+  E_MTJ  (Landauer-Buttiker): 0.100 fJ
+  E_qubit (gate drive):        0.990 fJ
+  E_CMOS  (cryo-CMOS periph): 10.000 fJ
+  E_syn   (total):             11.090 fJ
+-------------------------------------------------------
+  Wall-plug (50x Carnot):      554.5 fJ
+  Device-level advantage:      902x vs H100
+  Wall-plug advantage:         18.0x vs H100
+=======================================================
+
+============================================================
+  2. Q-STDP Quantum Synaptic Learning (Eq. 2 in paper)
+============================================================
+  Spike events simulated:    500
+  Qubit count per synapse:   k = 4
+  Hilbert space dimension:   2^4 = 16 basis states
+  Final mean weight:         0.4538
+  Final weight entropy:      3.5648 bits
+  Max entropy (uniform):     4.0 bits (k=4)
+  Final prob distribution:   ['0.089', '0.029', '0.110', '0.072']...
+
+============================================================
+  3. PMA-MTJ Resistance State Model (Paper Section V-B)
+============================================================
+  Pillar diameter:           20.0 nm
+  TMR ratio:                 200%  (paper: >200%)
+  R_P  (parallel):           5.0 kOhm
+  R_AP (anti-parallel):      15.0 kOhm
+  Resistance states:
+    P (R0): 5.00 kOhm  (2-bit code: 00)
+    R1    : 8.33 kOhm  (2-bit code: 01)
+    R2    : 11.67 kOhm  (2-bit code: 10)
+    AP (R3): 15.00 kOhm  (2-bit code: 11)
+  Switching energy:          0.1 fJ
+  Retention barrier (Delta): 60.0 k_B T
+  P(switch) at J = J_c:      1.000  (deterministic)
+  P(switch) at J = 0.5*J_c:  0.0000 (thermal activation)
+
+============================================================
+  4. Distance-3 Surface Code Analysis (Paper Section III-D, IV-C)
+============================================================
+============================================================
+  Distance-3 Surface Code Performance (QNHS)
+============================================================
+  Code distance (d):             3
+  Physical qubits per logical:   13
+  Physical error rate:           0.10%
+  Surface code threshold:        1.0%
+  Logical error rate:            1.00e-04
+  Coherence enhancement factor:  10.0x
+  Physical T2 at 1K:             1.0 ms
+  Logical T2 (projected):        10 ms
+  Spike integration window:      10.0 ms
+  Syndrome cycles per window:    10000
+  Coherence margin:              1.0x (>1 = viable)
+============================================================
+  STATUS: Marginally viable; isotopic enrichment roadmap needed.
+
+  -- Isotopic Enrichment Roadmap (T2 = 5 ms) --
+============================================================
+  Distance-3 Surface Code Performance (QNHS)
+============================================================
+  Code distance (d):             3
+  Physical qubits per logical:   13
+  Physical error rate:           0.10%
+  Surface code threshold:        1.0%
+  Logical error rate:            1.00e-04
+  Coherence enhancement factor:  10.0x
+  Physical T2 at 1K:             5.0 ms
+  Logical T2 (projected):        50 ms
+  Spike integration window:      10.0 ms
+  Syndrome cycles per window:    10000
+  Coherence margin:              5.0x (>1 = viable)
+============================================================
+  STATUS: Comfortably within QNHS operational requirements.
+
+============================================================
+  5. Unit Test Summary
+============================================================
+============================= test session starts =============================
+platform win32 -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0
+rootdir: C:\Users\Sunil\Documents\QNHS-Research-2026
+plugins: anyio-4.13.0
+collected 72 items
+
+tests\test_energy_model.py ..............                                [ 19%]
+tests\test_mtj_model.py ......................                           [ 50%]
+tests\test_qstdp.py .....................                                [ 79%]
+tests\test_surface_code.py ...............                               [100%]
+
+============================= 72 passed in 0.42s ==============================
+
+
+============================================================
+  CONSOLIDATED RESULTS SUMMARY
+============================================================
+  E_MTJ   = 0.100 fJ   (SOT switching, 20nm PMA-MTJ)
+  E_qubit = 0.990 fJ   (30 nW gate drive, 33 ns pi-pulse)
+  E_CMOS  = 10.0 fJ   (cryo-CMOS LIF + MWPM, 3nm FinFET at 1K)
+  E_syn   = 11.09 fJ   << paper target: ~11 fJ
+  Wall-plug advantage vs H100: 18.0x  (paper: ~20x)
+  Logical T2 (d=3, T2_phys=1ms): 10 ms   (paper: ~10-100 ms)
+  Unit tests: 72/72 PASSED
+
+  All results consistent with paper claims. Ready for submission.
+############################################################
+

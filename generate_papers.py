@@ -892,16 +892,6 @@ def generate_ieee_paper(output_path: str):
     for style in ["Normal", "Default Paragraph Font"]:
         pass  # keep defaults but override via explicit formatting
 
-    # ---- Conference header ----
-    hdr = add_paragraph(
-        doc,
-        "26th IEEE International Conference on Nanotechnology (IEEE-NANO 2026) "
-        "  July 5-8, 2026  Nanjing, China",
-        alignment=WD_ALIGN_PARAGRAPH.CENTER,
-        space_before=0, space_after=4,
-        italic=True, font_size=9
-    )
-
     # ---- Title ----
     title_para = doc.add_paragraph()
     title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -993,7 +983,7 @@ def generate_acm_paper(output_path: str):
         doc,
         "ACM Reference Format: Sunil Gentyala. 2026. Entangled Intelligence: "
         "Nanoscale Quantum-Neuromorphic Hybrid Architectures for Post-von Neumann "
-        "Computation. In Proceedings of ACM NANOCOM 2026. ACM, New York, NY, USA.",
+        "Computation. In Proceedings of the ACM Conference (venue TBD). ACM, New York, NY, USA.",
         alignment=WD_ALIGN_PARAGRAPH.LEFT,
         space_before=0, space_after=8,
         font_size=8, font_name="Arial", italic=True

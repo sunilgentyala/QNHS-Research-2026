@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Papers (kept separately outside the repo)
+papers/
+
+# Generated figures (reproducible from scripts)
+figures/*.png
+figures/*.pdf
+figures/*.svg
+
+# Do NOT ignore test results -- they are tracked
+!tests/results/

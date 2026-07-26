@@ -38,3 +38,6 @@ figures/*.svg
 
 # Do NOT ignore test results -- they are tracked
 !tests/results/
+
+# Manuscript-generator script embeds full paper text -- never commit
+generate_papers.py

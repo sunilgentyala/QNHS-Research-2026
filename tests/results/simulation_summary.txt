@@ -1,8 +1,8 @@
 
 ############################################################
   QNHS Research Simulation Suite
-  IEEE-NANO 2026 | Sunil Gentyala | ORCID: 0009-0005-2642-3479
-  Run date: 2026-05-25 21:47
+  Sunil Gentyala | ORCID: 0009-0005-2642-3479
+  Run date: 2026-09-23 23:36
   GitHub: https://github.com/sunilgentyala/QNHS-Research-2026
 ############################################################
 
@@ -28,10 +28,10 @@
   Spike events simulated:    500
   Qubit count per synapse:   k = 4
   Hilbert space dimension:   2^4 = 16 basis states
-  Final mean weight:         0.4538
-  Final weight entropy:      3.5648 bits
+  Final mean weight:         0.4749
+  Final weight entropy:      3.5703 bits
   Max entropy (uniform):     4.0 bits (k=4)
-  Final prob distribution:   ['0.089', '0.029', '0.110', '0.072']...
+  Final prob distribution:   ['0.079', '0.026', '0.101', '0.068']...
 
 ============================================================
   3. PMA-MTJ Resistance State Model (Paper Section V-B)
@@ -93,17 +93,26 @@
 ============================================================
 ============================= test session starts =============================
 platform win32 -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0
-rootdir: C:\Users\Sunil\Documents\QNHS-Research-2026
-plugins: anyio-4.13.0
-collected 72 items
+rootdir: QNHS-Research-2026
+plugins: anyio-4.13.0, hypothesis-6.163.0, langsmith-0.9.7, asyncio-1.4.0, cov-7.1.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 73 items
 
 tests\test_energy_model.py ..............                                [ 19%]
-tests\test_mtj_model.py ......................                           [ 50%]
-tests\test_qstdp.py .....................                                [ 79%]
+tests\test_mtj_model.py ......................                           [ 49%]
+tests\test_qstdp.py ......................                               [ 79%]
 tests\test_surface_code.py ...............                               [100%]
 
-============================= 72 passed in 0.42s ==============================
+============================= 73 passed in 2.48s ==============================
 
+
+============================================================
+  6. Figure Generation
+============================================================
+Saved: figures/energy_comparison.png
+Saved: figures/mtj_characteristics.png
+Saved: figures/qstdp_dynamics.png
+Saved: figures/surface_code_scaling.png
 
 ============================================================
   CONSOLIDATED RESULTS SUMMARY
@@ -114,8 +123,7 @@ tests\test_surface_code.py ...............                               [100%]
   E_syn   = 11.09 fJ   << paper target: ~11 fJ
   Wall-plug advantage vs H100: 18.0x  (paper: ~20x)
   Logical T2 (d=3, T2_phys=1ms): 10 ms   (paper: ~10-100 ms)
-  Unit tests: 72/72 PASSED
-
-  All results consistent with paper claims. Ready for submission.
+  Unit tests: ALL PASSED
+  Figures:    figures/*.png
 ############################################################
 

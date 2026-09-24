@@ -98,8 +98,8 @@ class TestQSTDPUpdate(unittest.TestCase):
         for _ in range(200):
             syn.update(dt_ms=15.0)  # sustained potentiation
         final_mean = syn.mean_weight()
-        self.assertGreater(final_mean, initial_mean,
-            msg="Sustained LTP should increase mean weight")
+        self.assertGreater(final_mean - initial_mean, 0.05,
+            msg="Sustained LTP should increase mean weight by a real margin")
 
     def test_ltd_shifts_mass_to_lower_weights(self):
         """Sustained LTD (dt < 0) must decrease mean weight over time."""
@@ -108,8 +108,16 @@ class TestQSTDPUpdate(unittest.TestCase):
         for _ in range(200):
             syn.update(dt_ms=-15.0)  # sustained depression
         final_mean = syn.mean_weight()
-        self.assertLess(final_mean, initial_mean,
-            msg="Sustained LTD should decrease mean weight")
+        self.assertGreater(initial_mean - final_mean, 0.05,
+            msg="Sustained LTD should decrease mean weight by a real margin")
+
+    def test_uniform_scaling_is_not_learning(self):
+        """Regression: the update must not be a pure rescale that N[.] cancels."""
+        syn = QSTDPSynapse(k=4, seed=7)
+        before = np.abs(syn.alpha) ** 2
+        syn.update(dt_ms=5.0)
+        after = np.abs(syn.alpha) ** 2
+        self.assertGreater(np.max(np.abs(after - before)), 1e-6)
 
     def test_mean_weight_in_range(self):
         """Mean weight must stay in [0, 1] at all times."""

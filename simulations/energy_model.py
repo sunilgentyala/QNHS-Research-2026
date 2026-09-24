@@ -1,7 +1,7 @@
 """
 QNHS Energy Model: Synaptic Event Energy Decomposition
 Quantum-Neuromorphic Hybrid Substrate (QNHS)
-IEEE-NANO 2026 / ACM NANOCOM 2026
+Research code accompanying the QNHS paper
 
 Author: Sunil Gentyala
 Affiliation: Independent Researcher, HCLTech (HCL America Inc.), Dallas, TX
@@ -10,8 +10,11 @@ ORCID: 0009-0005-2642-3479
 Reference: Eq. (4) in the paper: E_syn = E_MTJ + E_qubit + E_CMOS
 """
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+FIG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "figures")
 from dataclasses import dataclass
 
 
@@ -135,7 +138,7 @@ def plot_energy_comparison():
     ax.set_yscale("log")
     ax.set_ylabel("Energy per Synaptic Event (fJ)", fontsize=12)
     ax.set_title("QNHS vs. State-of-the-Art: Synaptic Energy Comparison\n"
-                 "IEEE-NANO 2026 | Sunil Gentyala", fontsize=11)
+                 "QNHS | Sunil Gentyala", fontsize=11)
     ax.set_ylim(1, 1e5)
     ax.axhline(y=11, color="green", linestyle="--", alpha=0.6, label="QNHS device level (11 fJ)")
     for bar, val in zip(bars, energies_fJ):
@@ -144,9 +147,11 @@ def plot_energy_comparison():
     ax.legend(fontsize=9)
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
-    plt.savefig("../figures/energy_comparison.png", dpi=150, bbox_inches="tight")
+    os.makedirs(FIG_DIR, exist_ok=True)
+    plt.savefig(os.path.join(FIG_DIR, "energy_comparison.png"), dpi=150, bbox_inches="tight")
     print("Saved: figures/energy_comparison.png")
-    plt.show()
+    if "agg" not in plt.get_backend().lower():
+        plt.show()
 
 
 if __name__ == "__main__":

@@ -1,243 +1,191 @@
-# Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid Architectures for Post-von Neumann Computation
+<div align="center">
 
-**GitHub Repository:** https://github.com/sunilgentyala/QNHS-Research-2026
+# QNHS: Quantum-Neuromorphic Hybrid Substrate
 
-**Author:** Sunil Gentyala
-**Affiliation:** Independent Researcher, HCLTech (HCL America Inc.), Dallas, TX 75001, USA
-**Email:** sunil.gentyala@ieee.org
-**ORCID:** [0009-0005-2642-3479](https://orcid.org/0009-0005-2642-3479)
-**IEEE Senior Member**
+### Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid Architectures for Post-von Neumann Computation
 
----
+[![CI](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/sunilgentyala/QNHS-Research-2026?color=6c5ce7)](https://github.com/sunilgentyala/QNHS-Research-2026/releases)
+[![Tests](https://img.shields.io/badge/tests-73%20passing-2ea44f)](tests/results/test_results.txt)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](requirements.txt)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![Website](https://img.shields.io/badge/website-live-00b894)](https://sunilgentyala.github.io/QNHS-Research-2026/)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0005--2642--3479-a6ce39?logo=orcid&logoColor=white)](https://orcid.org/0009-0005-2642-3479)
 
-## Overview
+**[Website](https://sunilgentyala.github.io/QNHS-Research-2026/)** ·
+**[Quick Start](#quick-start)** ·
+**[Results](#results)** ·
+**[Threat Model](security/threat_model.md)** ·
+**[Cite](#citation)**
 
-This repository contains open-source simulation code, test suites, references, and a security threat model accompanying the research paper:
-
-> **"Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid Architectures for Post-von Neumann Computation"**
-> Sunil Gentyala
-> Under review for conference submission, 2026
-
-The paper proposes and analyzes the **Quantum-Neuromorphic Hybrid Substrate (QNHS)**: a vertically integrated monolithic architecture co-integrating:
-
-- **28Si spin qubit arrays** -- Quantum Coherent Processing Plane (QCPP)
-- **PMA-MTJ spintronic memristors** -- Spintronic Synaptic Plane (SSP)
-- **3 nm cryo-CMOS FinFET circuits** -- CMOS Peripheral Plane (CPP)
-
-The architecture projects **~11 fJ per synaptic event** (three orders of magnitude below GPU baselines) with intrinsic Bayesian uncertainty quantification and hardware-native security primitives.
+</div>
 
 ---
 
-## Key Contributions
+Simulation code, unit tests, references and a hardware security threat model for **QNHS**, a proposed
+monolithic three-plane architecture that stacks spin qubits, spintronic synapses and cryo-CMOS
+control into one device. The code reproduces the paper's energy, learning, device and error-correction
+numbers so they can be checked rather than taken on trust.
 
-1. **QNHS Three-Plane Architecture** -- Monolithic vertical integration of quantum, spintronic, and CMOS planes bonded via Cu-Cu thermocompression at 200 nm pitch.
+> **Status:** research paper under review (2026). All QNHS figures are **theoretical projections** from
+> the models in this repository, not measurements of fabricated hardware.
 
-2. **Quantum Synaptic Encoding** -- Each synapse encoded as a k-qubit quantum state in a 2^k-dimensional Hilbert space, providing intrinsic Bayesian weight distributions.
+## At a glance
 
-3. **Q-STDP Learning Rule** -- Quantum amplitude-domain spike-timing-dependent plasticity that reproduces Hebbian learning while encoding probabilistic weight distributions.
+| | |
+|---|---|
+| **~11.1 fJ** | modeled energy per synaptic event (device level) |
+| **~18x** | wall-plug advantage over an NVIDIA H100 baseline, after a 50x cryogenic cooling penalty |
+| **2^k states** | weight distribution per synapse with k qubits (16 states for k = 4) |
+| **10 to 50 ms** | projected logical T2 with a distance-3 surface code (1 ms to 5 ms physical T2) |
+| **73 / 73** | unit tests passing |
 
-4. **Distance-3 Surface Code Protection** -- Topological error correction at 1 K projecting logical coherence lifetimes of up to 100 ms across multiple spike integration windows.
-
-5. **First Security Analysis for Quantum-Neuromorphic Hardware** -- Covers side-channel attacks (GLSVLSI 2025, NDSS 2025), adversarial weight manipulation, hardware trojans, and supply chain threats.
-
-6. **Hardware Security Primitives** -- Quantum dot physical unclonable functions (QD-PUFs), MTJ true random number generation (QRNG), and post-quantum cryptography acceleration via the analog MTJ crossbar.
-
----
-
-## Repository Structure
+## Architecture
 
 ```
-QNHS-Research-2026/
-├── README.md
-├── LICENSE
-├── .gitignore
-├── requirements.txt
-├── generate_papers.py          # Venue-neutral DOCX generator (IEEE + ACM formats)
-├── run_all_simulations.py      # One-command full suite runner with summary report
-├── simulations/
-│   ├── __init__.py
-│   ├── energy_model.py         # QNHS synaptic energy decomposition (Eq. 3)
-│   ├── qstdp_simulation.py     # Q-STDP quantum amplitude learning simulation
-│   ├── mtj_resistance_model.py # PMA-MTJ four-state resistance modeling
-│   └── surface_code_analysis.py# Distance-3 surface code coherence analysis
-├── tests/
-│   ├── __init__.py
-│   ├── test_energy_model.py    # 14 unit tests -- energy decomposition
-│   ├── test_qstdp.py           # 21 unit tests -- Q-STDP learning rule
-│   ├── test_mtj_model.py       # 22 unit tests -- MTJ resistance model
-│   ├── test_surface_code.py    # 15 unit tests -- surface code analysis
-│   └── results/
-│       ├── test_results.txt    # 72/72 passed (pytest output)
-│       └── simulation_summary.txt  # Numerical results snapshot
-├── references/
-│   └── references.bib          # 26 BibTeX entries (all DOIs verified May 2026)
-├── security/
-│   └── threat_model.md         # Full QNHS hardware security threat model
-└── figures/                    # Populated by running simulation scripts
+          ┌─────────────────────────────────────────────┐
+ Plane 1  │  QCPP  Quantum Coherent Processing Plane    │  28Si spin qubit arrays, d=3 surface code
+          ├──────────────── Cu-Cu bond, 200 nm pitch ───┤
+ Plane 2  │  SSP   Spintronic Synaptic Plane            │  PMA-MTJ memristors, 4 states (2 bit)
+          ├──────────────── Cu-Cu bond, 200 nm pitch ───┤
+ Plane 3  │  CPP   CMOS Peripheral Plane                │  3 nm cryo-CMOS FinFET: LIF neurons, MWPM decoder
+          └─────────────────────────────────────────────┘
+                              operated at ~1 K
 ```
 
-> **Note:** Paper DOCX files (IEEE and ACM formats) are kept separately and not tracked in this repository. Run `python generate_papers.py` to regenerate them locally.
+## Key contributions
 
----
+1. **Three-plane monolithic architecture.** Quantum, spintronic and CMOS planes bonded by Cu-Cu thermocompression at 200 nm pitch.
+2. **Quantum synaptic encoding.** Each synapse is a k-qubit state in a 2^k-dimensional Hilbert space, so the weight is a distribution with built-in Bayesian uncertainty.
+3. **Q-STDP learning rule.** Spike-timing-dependent plasticity in the amplitude domain. LTP moves probability mass toward higher-weight basis states and LTD moves it toward lower ones.
+4. **Distance-3 surface code protection.** A 10x coherence gain at 0.1% physical error keeps logical qubits coherent across a 10 ms spike integration window.
+5. **Hardware security analysis.** Side-channel, adversarial-weight, trojan and supply-chain threats, plus on-chip primitives: quantum-dot PUFs, MTJ true random number generation and crossbar-accelerated post-quantum cryptography.
 
-## Quick Start
+## Quick start
 
 ```bash
 git clone https://github.com/sunilgentyala/QNHS-Research-2026.git
 cd QNHS-Research-2026
 pip install -r requirements.txt
-python run_all_simulations.py
+
+python run_all_simulations.py     # all four models + tests + figures/*.png
+python -m pytest tests/ -v        # 73 unit tests
 ```
 
-To run the full test suite:
-
-```bash
-python -m pytest tests/ -v
-```
-
----
-
-## Simulation Modules
-
-### 1. Energy Model (`simulations/energy_model.py`)
-
-Implements the three-component synaptic energy decomposition (Eq. 3 in paper):
-
-| Component | Value | Source |
-|-----------|-------|--------|
-| E_MTJ | 0.1 fJ | SOT switching, 20 nm PMA-MTJ, 1 ns pulse |
-| E_qubit | ~1 fJ | 30 nW gate drive, 33 ns pi-pulse (30 MHz Rabi) |
-| E_CMOS | 10 fJ | LIF neuron + MWPM + SerDes, 3 nm FinFET at 1 K |
-| **E_syn** | **~11 fJ** | **Total -- ~3 orders below NVIDIA H100** |
+Each model also runs on its own, from any directory:
 
 ```bash
 python simulations/energy_model.py
-```
-
-### 2. Q-STDP Simulation (`simulations/qstdp_simulation.py`)
-
-Simulates quantum spike-timing-dependent plasticity on a single k-qubit synapse:
-
-- Amplitude update rule: `alpha_l^(t+1) = N[ alpha_l + eta * K(dt) * alpha_l ]`
-- Tracks weight distribution evolution, Shannon entropy, and LTP/LTD dynamics
-- Demonstrates Bayesian uncertainty quantification absent in classical neuromorphic systems
-
-```bash
 python simulations/qstdp_simulation.py
-```
-
-### 3. MTJ Resistance Model (`simulations/mtj_resistance_model.py`)
-
-Models PMA-MTJ spintronic synaptic device characteristics:
-
-- Four resistance states {R0, R1, R2, R3} encoding 2 bits per synapse
-- TMR ratio >200%, retention barrier 60 k_B T
-- Neel-Brown thermally activated switching (sub-critical J) and deterministic SOT switching (J >= J_c)
-
-```bash
 python simulations/mtj_resistance_model.py
-```
-
-### 4. Surface Code Analysis (`simulations/surface_code_analysis.py`)
-
-Analyzes distance-3 surface code topological protection for spin qubits at 1 K:
-
-- Logical error rate: `p_L = p_phys * (p_phys / p_th)^((d-1)/2)`
-- Coherence enhancement: 10x at current 28Si fidelity, 50x with isotopic enrichment roadmap
-- MWPM decoder latency (1 us) verified << spike integration window (10 ms)
-
-```bash
 python simulations/surface_code_analysis.py
 ```
 
----
+## Results
 
-## Test Results
+### 1. Energy per synaptic event
 
-72 unit tests across four modules, all passing:
+<img src="docs/assets/energy_comparison.png" alt="Synaptic energy comparison: H100, Loihi 2, NorthPole, QNHS" width="720">
+
+| Component | Value | Basis |
+|-----------|------:|-------|
+| E_MTJ | 0.10 fJ | SOT switching, 20 nm PMA-MTJ, 1 ns pulse |
+| E_qubit | 0.99 fJ | 30 nW gate drive, 33 ns pi-pulse (30 MHz Rabi) |
+| E_CMOS | 10.0 fJ | LIF neuron + MWPM + SerDes, 3 nm FinFET at 1 K |
+| **E_syn** | **11.09 fJ** | **sum; roughly 900x below the ~10 pJ H100 figure** |
+
+### 2. Q-STDP learning dynamics
+
+<img src="docs/assets/qstdp_dynamics.png" alt="Q-STDP mean weight, entropy, kernel and final distribution" width="720">
 
 ```
-tests/test_energy_model.py    14 passed
-tests/test_mtj_model.py       22 passed
-tests/test_qstdp.py           21 passed
-tests/test_surface_code.py    15 passed
-------------------------------------------
-TOTAL                         72 passed
+alpha_l(t+1) = N[ alpha_l(t) + eta * K(dt) * (w_l - <w>) * alpha_l(t) ]
+K(dt)        = A+ exp(-dt/tau+) Theta(dt)  -  A- exp(dt/tau-) Theta(-dt)
 ```
 
-Full output: [`tests/results/test_results.txt`](tests/results/test_results.txt)
+Under sustained potentiation (dt = +15 ms, 200 events) the mean weight rises from 0.40 to 0.59.
+Under sustained depression (dt = -15 ms) it falls to 0.25.
 
----
+### 3. PMA-MTJ synaptic device
 
-## Key Results Summary
+<img src="docs/assets/mtj_characteristics.png" alt="MTJ resistance states, switching probability and crossbar map" width="720">
 
-| Metric | NVIDIA H100 | Intel Loihi 2 | IBM NorthPole | QNHS (Projected) |
+Four resistance states (5.0 / 8.3 / 11.7 / 15.0 kΩ) encode 2 bits per synapse, with TMR = 200% and a 60 k_B T retention barrier.
+
+### 4. Surface code error suppression
+
+<img src="docs/assets/surface_code_scaling.png" alt="Logical error rate and coherence enhancement vs. code distance" width="720">
+
+`p_L = p_phys (p_phys / p_th)^((d-1)/2)`. At p_phys = 0.1% and d = 3 this gives p_L = 1e-4 and a 10x coherence gain.
+The 1 µs MWPM decoder cycle fits 10,000 times into a 10 ms spike window.
+
+### Comparison
+
+| Metric | NVIDIA H100 | Intel Loihi 2 | IBM NorthPole | QNHS (projected) |
 |--------|-------------|---------------|---------------|------------------|
 | E_syn (device level) | ~10 pJ | ~1 pJ | ~0.5 pJ | **~11 fJ** |
-| Wall-plug efficiency vs H100 | 1x baseline | ~10x | ~20x | **~20x** |
+| Advantage vs H100 | 1x | ~10x | ~20x | **~18x wall-plug** |
 | Weight encoding | FP16 | INT8 | INT8 | **2^k quantum states** |
 | Bayesian uncertainty | None | None | None | **Intrinsic** |
-| Spike-native processing | No | Yes | Partial | **Yes** |
-| Hardware security primitives | None | None | None | **PUF + QRNG + PQC** |
+| Spike-native | No | Yes | Partial | **Yes** |
+| Security primitives | None | None | None | **PUF + QRNG + PQC** |
 | Operating temperature | 300 K | 300 K | 300 K | **~1 K** |
 
-Wall-plug efficiency accounts for ~50x Carnot refrigeration overhead at 1 K from 300 K. QNHS figures are theoretical projections; all other figures are from published specifications.
+The QNHS wall-plug figure includes a ~50x Carnot refrigeration overhead from 300 K to 1 K. The other columns come from published specifications.
 
----
+## Repository structure
 
-## Security Contributions
+```
+QNHS-Research-2026/
+├── run_all_simulations.py       # one-command runner: models, tests, figures
+├── simulations/
+│   ├── energy_model.py          # synaptic energy decomposition
+│   ├── qstdp_simulation.py      # Q-STDP amplitude learning
+│   ├── mtj_resistance_model.py  # PMA-MTJ four-state model
+│   └── surface_code_analysis.py # distance-d surface code coherence
+├── tests/                       # 73 unit tests + results/ snapshots
+├── references/references.bib    # 26 BibTeX entries with DOIs
+├── security/threat_model.md     # hardware security threat model
+├── docs/                        # GitHub Pages website
+└── figures/                     # generated by the runner (git-ignored)
+```
 
-This paper provides the first comprehensive security analysis for a quantum-neuromorphic hardware substrate:
+The manuscript itself is kept out of this repository.
 
-- **Side-channel attacks**: Lu et al. (GLSVLSI 2025, DOI: 10.1145/3716368.3735264) demonstrated 10-query hardware fingerprinting on cloud quantum services; Choudhury et al. (NDSS 2025, arXiv:2412.10507) showed 85.7% circuit reconstruction via crosstalk.
-- **Adversarial robustness**: Quantum amplitude encoding provides inherent stochastic resilience against gradient-based attacks; Q-STDP training-phase poisoning countered via differential privacy.
-- **Hardware security primitives**: QD-PUFs from charge noise signatures, MTJ-QRNG from stochastic free-layer switching, and crossbar-based PQC acceleration for NIST FIPS 203/204/205 lattice schemes.
-- **Supply chain**: Trusted foundry and post-fabrication 1 K verification requirements for cryo-CMOS logic encryption.
+## Security
 
-Full threat model: [security/threat_model.md](security/threat_model.md)
+The threat model covers:
 
----
+- **Side channels.** Lu et al. (GLSVLSI 2025, [10.1145/3716368.3735264](https://doi.org/10.1145/3716368.3735264)) fingerprinted cloud quantum hardware in 10 queries. Choudhury et al. (NDSS 2025, [arXiv:2412.10507](https://arxiv.org/abs/2412.10507)) reconstructed 85.7% of circuits through crosstalk.
+- **Adversarial weights.** Amplitude encoding adds stochastic resilience against gradient attacks. Differential privacy counters Q-STDP training-time poisoning.
+- **Primitives.** Quantum-dot PUFs from charge-noise signatures, MTJ-based QRNG, and crossbar acceleration for NIST FIPS 203/204/205 lattice schemes.
+- **Supply chain.** Trusted-foundry flow and post-fabrication verification at 1 K for cryo-CMOS logic locking.
 
-## References
-
-All 26 references are compiled in [`references/references.bib`](references/references.bib) with verified DOIs. Key 2024-2025 additions include:
-
-- Mills et al., Nature 646, 81-87 (2025) -- 99% fidelity in 300 mm foundry. DOI: 10.1038/s41586-025-09531-9
-- Simmons et al., Nature 648, 569-575 (2025) -- 11-qubit atom processor. DOI: 10.1038/s41586-025-09827-w
-- Lu et al., GLSVLSI 2025 -- quantum timing side-channel. DOI: 10.1145/3716368.3735264
-- Choudhury et al., NDSS 2025 -- crosstalk-based circuit reconstruction. arXiv:2412.10507
-- NIST FIPS 203/204/205, Aug. 2024 -- post-quantum cryptography standards
-
----
+Full document: [security/threat_model.md](security/threat_model.md)
 
 ## Citation
 
-If you use this code or reference this work, please cite (update venue when published):
-
 ```bibtex
-@inproceedings{gentyala2026qnhs,
-  author    = {Gentyala, Sunil},
-  title     = {Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid
-               Architectures for Post-von Neumann Computation},
-  booktitle = {Proceedings of [Conference Name]},
-  year      = {2026},
-  note      = {GitHub: https://github.com/sunilgentyala/QNHS-Research-2026}
+@misc{gentyala2026qnhs,
+  author = {Gentyala, Sunil},
+  title  = {Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid
+            Architectures for Post-von Neumann Computation},
+  year   = {2026},
+  note   = {Code: https://github.com/sunilgentyala/QNHS-Research-2026}
 }
 ```
 
----
+GitHub's **"Cite this repository"** button reads [CITATION.cff](CITATION.cff). The entry will be updated with the venue once the paper is published.
+
+## Author
+
+**Sunil Gentyala**, IEEE Senior Member
+Independent Researcher, HCLTech (HCL America Inc.), Dallas, TX, USA
+[sunil.gentyala@ieee.org](mailto:sunil.gentyala@ieee.org) ·
+[ORCID](https://orcid.org/0009-0005-2642-3479) ·
+[LinkedIn](https://www.linkedin.com/in/sunil-gentyala) ·
+[GitHub](https://github.com/sunilgentyala)
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-## Contact
-
-**Sunil Gentyala**
-Independent Researcher | HCLTech (HCL America Inc.), Dallas, TX 75001, USA
-Email: sunil.gentyala@ieee.org
-ORCID: 0009-0005-2642-3479
-LinkedIn: linkedin.com/in/sunil-gentyala
-GitHub: github.com/sunilgentyala
+MIT. See [LICENSE](LICENSE).

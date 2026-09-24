@@ -1,7 +1,7 @@
 """
 Distance-3 Surface Code Analysis for QNHS Topological Error Protection
 Quantum-Neuromorphic Hybrid Substrate (QNHS)
-IEEE-NANO 2026 / ACM NANOCOM 2026
+Research code accompanying the QNHS paper
 
 Analyzes the distance-3 surface code error suppression performance
 for 28Si spin qubits in the QNHS architecture (Section III-D, IV-C).
@@ -11,8 +11,11 @@ ORCID: 0009-0005-2642-3479
 GitHub: https://github.com/sunilgentyala/QNHS-Research-2026
 """
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+FIG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "figures")
 from dataclasses import dataclass
 
 
@@ -29,7 +32,8 @@ class SurfaceCodeParams:
 class SurfaceCodeAnalyzer:
     """
     Analyzes distance-d surface code performance for QNHS logical coherence.
-    Uses approximate suppression formula: p_L ~ (p_phys/p_th)^((d+1)/2)
+    Uses approximate suppression formula: p_L = p_th * (p_phys/p_th)^((d+1)/2),
+    equivalently p_phys * (p_phys/p_th)^((d-1)/2).
     """
 
     def __init__(self, params: SurfaceCodeParams):
@@ -102,7 +106,7 @@ def plot_surface_code_scaling():
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
     fig.suptitle(
         "Surface Code Error Suppression for 28Si Spin Qubits\n"
-        "QNHS Topological Protection | IEEE-NANO 2026",
+        "QNHS Topological Protection",
         fontsize=10,
     )
 
@@ -110,10 +114,15 @@ def plot_surface_code_scaling():
     labels = ["p_phys = 0.1% (28Si)", "p_phys = 0.5%", "p_phys = 1.0%"]
 
     for p_phys, color, label in zip(p_phys_values, colors, labels):
-        p_L = [(p_phys / p_th) ** ((d + 1) / 2) for d in distances]
-        coherence = [(p_th / p_phys) ** ((d - 1) / 2) for d in distances]
+        analyzers = [
+            SurfaceCodeAnalyzer(SurfaceCodeParams(
+                distance=d, physical_error_rate=p_phys, threshold_error_rate=p_th))
+            for d in distances
+        ]
+        p_L = [a.logical_error_rate for a in analyzers]
+        coherence = [a.coherence_enhancement for a in analyzers]
         axes[0].semilogy(distances, p_L, "o-", color=color, lw=2, label=label, markersize=6)
-        axes[1].plot(distances, coherence, "s-", color=color, lw=2, label=label, markersize=6)
+        axes[1].semilogy(distances, coherence, "s-", color=color, lw=2, label=label, markersize=6)
 
     axes[0].axhline(1e-6, color="gray", linestyle="--", alpha=0.6, label="Target p_L < 1e-6")
     axes[0].set_xlabel("Code Distance d")
@@ -130,9 +139,11 @@ def plot_surface_code_scaling():
     axes[1].grid(alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig("../figures/surface_code_scaling.png", dpi=150, bbox_inches="tight")
+    os.makedirs(FIG_DIR, exist_ok=True)
+    plt.savefig(os.path.join(FIG_DIR, "surface_code_scaling.png"), dpi=150, bbox_inches="tight")
     print("Saved: figures/surface_code_scaling.png")
-    plt.show()
+    if "agg" not in plt.get_backend().lower():
+        plt.show()
 
 
 if __name__ == "__main__":

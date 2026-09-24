@@ -1,19 +1,27 @@
 """
 Q-STDP: Quantum Spike-Timing-Dependent Plasticity Simulation
 Quantum-Neuromorphic Hybrid Substrate (QNHS)
-IEEE-NANO 2026 / ACM NANOCOM 2026
+Research code accompanying the QNHS paper
 
-Implements Eq. (3) from the paper:
-  alpha_l^(t+1) = N[ alpha_l^(t) + eta * K(dt) * alpha_l^(t) ]
+Implements the Q-STDP amplitude update:
+  alpha_l^(t+1) = N[ alpha_l^(t) + eta * K(dt) * (w_l - <w>) * alpha_l^(t) ]
   K(dt) = A+ * exp(-dt/tau+) * Theta(dt) - A- * exp(+dt/tau-) * Theta(-dt)
+
+The (w_l - <w>) factor is required. Without it every amplitude is scaled by
+the same factor (1 + eta*K), which N[.] cancels exactly, and the update does
+nothing. With it, LTP (K > 0) moves probability mass toward basis states
+above the current mean weight and LTD (K < 0) moves it below.
 
 Author: Sunil Gentyala
 ORCID: 0009-0005-2642-3479
 GitHub: https://github.com/sunilgentyala/QNHS-Research-2026
 """
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+FIG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "figures")
 from typing import Tuple
 
 
@@ -56,7 +64,8 @@ class QSTDPSynapse:
     def update(self, dt_ms: float) -> None:
         """Apply Q-STDP amplitude update for a spike pair separated by dt_ms."""
         k_val = self.stdp_kernel(dt_ms)
-        self.alpha = self.alpha + self.eta * k_val * self.alpha
+        centered = self.weight_basis - self.mean_weight()
+        self.alpha = self.alpha + self.eta * k_val * centered * self.alpha
         norm = np.linalg.norm(self.alpha)
         if norm > 1e-10:
             self.alpha /= norm
@@ -112,7 +121,7 @@ def plot_qstdp_results(results: dict):
     fig, axes = plt.subplots(2, 2, figsize=(11, 7))
     fig.suptitle(
         "Q-STDP Quantum Synaptic Learning Dynamics\n"
-        "IEEE-NANO 2026 | Sunil Gentyala | QNHS Architecture",
+        "QNHS Architecture | Sunil Gentyala",
         fontsize=11,
     )
 
@@ -162,9 +171,11 @@ def plot_qstdp_results(results: dict):
     axes[1, 1].grid(axis="y", alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig("../figures/qstdp_dynamics.png", dpi=150, bbox_inches="tight")
+    os.makedirs(FIG_DIR, exist_ok=True)
+    plt.savefig(os.path.join(FIG_DIR, "qstdp_dynamics.png"), dpi=150, bbox_inches="tight")
     print("Saved: figures/qstdp_dynamics.png")
-    plt.show()
+    if "agg" not in plt.get_backend().lower():
+        plt.show()
 
 
 if __name__ == "__main__":

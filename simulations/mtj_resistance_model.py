@@ -1,7 +1,7 @@
 """
 PMA-MTJ Resistance State Modeling for QNHS Synaptic Plane
 Quantum-Neuromorphic Hybrid Substrate (QNHS)
-IEEE-NANO 2026 / ACM NANOCOM 2026
+Research code accompanying the QNHS paper
 
 Models the four distinguishable resistance states {R0, R1, R2, R3}
 in a PMA-MTJ crossbar with TMR > 200%.
@@ -12,8 +12,11 @@ ORCID: 0009-0005-2642-3479
 GitHub: https://github.com/sunilgentyala/QNHS-Research-2026
 """
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+FIG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "figures")
 from dataclasses import dataclass, field
 from typing import List
 
@@ -81,7 +84,7 @@ def plot_mtj_characteristics(device: MTJDevice):
     fig, axes = plt.subplots(1, 3, figsize=(13, 4))
     fig.suptitle(
         "PMA-MTJ Synaptic Device Characteristics\n"
-        "QNHS SSP (Spintronic Synaptic Plane) | IEEE-NANO 2026",
+        "QNHS SSP (Spintronic Synaptic Plane)",
         fontsize=10,
     )
 
@@ -123,9 +126,11 @@ def plot_mtj_characteristics(device: MTJDevice):
     axes[2].set_ylabel("Row (Presynaptic)")
 
     plt.tight_layout()
-    plt.savefig("../figures/mtj_characteristics.png", dpi=150, bbox_inches="tight")
+    os.makedirs(FIG_DIR, exist_ok=True)
+    plt.savefig(os.path.join(FIG_DIR, "mtj_characteristics.png"), dpi=150, bbox_inches="tight")
     print("Saved: figures/mtj_characteristics.png")
-    plt.show()
+    if "agg" not in plt.get_backend().lower():
+        plt.show()
 
 
 if __name__ == "__main__":

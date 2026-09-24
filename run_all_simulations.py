@@ -12,7 +12,13 @@ import os
 import sys
 import datetime
 
-# Ensure figures directory exists
+# Render figures to files without opening windows
+os.environ.setdefault("MPLBACKEND", "Agg")
+
+# Run relative to the repo root regardless of the caller's cwd
+REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
+os.chdir(REPO_ROOT)
+sys.path.insert(0, REPO_ROOT)
 os.makedirs("figures", exist_ok=True)
 
 
@@ -105,10 +111,24 @@ def run_tests_summary():
     return result.returncode == 0
 
 
+def generate_figures(mtj_device, qstdp_results):
+    section("6. Figure Generation")
+    import matplotlib.pyplot as plt
+    from simulations.energy_model import plot_energy_comparison
+    from simulations.mtj_resistance_model import plot_mtj_characteristics
+    from simulations.qstdp_simulation import plot_qstdp_results
+    from simulations.surface_code_analysis import plot_surface_code_scaling
+    plot_energy_comparison()
+    plot_mtj_characteristics(mtj_device)
+    plot_qstdp_results(qstdp_results)
+    plot_surface_code_scaling()
+    plt.close("all")
+
+
 def main():
     print("\n" + "#" * 60)
     print("  QNHS Research Simulation Suite")
-    print("  IEEE-NANO 2026 | Sunil Gentyala | ORCID: 0009-0005-2642-3479")
+    print("  Sunil Gentyala | ORCID: 0009-0005-2642-3479")
     print(f"  Run date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("  GitHub: https://github.com/sunilgentyala/QNHS-Research-2026")
     print("#" * 60)
@@ -118,6 +138,7 @@ def main():
     mtj_device    = run_mtj_model()
     sc_analyzer   = run_surface_code()
     tests_passed  = run_tests_summary()
+    generate_figures(mtj_device, qstdp_results)
 
     section("CONSOLIDATED RESULTS SUMMARY")
     e = energy_model
@@ -130,8 +151,8 @@ def main():
     from simulations.surface_code_analysis import SurfaceCodeParams, SurfaceCodeAnalyzer
     sc = SurfaceCodeAnalyzer(SurfaceCodeParams())
     print(f"  Logical T2 (d=3, T2_phys=1ms): {sc.logical_T2_ms:.0f} ms   (paper: ~10-100 ms)")
-    print(f"  Unit tests: {'72/72 PASSED' if tests_passed else 'SOME FAILED'}")
-    print("\n  All results consistent with paper claims. Ready for submission.")
+    print(f"  Unit tests: {'ALL PASSED' if tests_passed else 'SOME FAILED'}")
+    print("  Figures:    figures/*.png")
     print("#" * 60 + "\n")
 
 

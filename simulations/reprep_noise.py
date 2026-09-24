@@ -167,6 +167,31 @@ class NoiseModel:
         return cls(p1=0.014, p2=0.03, T2_us=2.0, readout=0.02)
 
     @classmethod
+    def from_benchmarks(cls, f1: float, f2: float, readout: float, T2_us: float = np.inf) -> "NoiseModel":
+        """Map benchmarked average gate fidelities onto this model's channels.
+
+        A 1-qubit depolarizing channel with Pauli error p has average gate
+        infidelity 2p/3, so p1 = 1.5 (1 - f1). Independent depolarizing of
+        strength p on both qubits of a 2-qubit gate gives average infidelity
+        8p/5 to first order, so p2 = (1 - f2) / 1.6. Benchmarked fidelities
+        already contain dephasing during the gate, so T2 defaults to infinity
+        (no separate dephasing channel) to avoid counting it twice.
+        """
+        return cls(p1=1.5 * (1.0 - f1), p2=(1.0 - f2) / 1.6, T2_us=T2_us, readout=readout)
+
+    @classmethod
+    def huang_1k(cls, with_T2star: bool = False) -> "NoiseModel":
+        """~1 K, Huang et al., Nature 627 (2024) 772: 1q Clifford fidelity 99.85%,
+        2q (DCZ, Bayesian tomography) 98.92%, readout 99.34% (even parity) and
+        96.15% (odd parity), T2* ~2.3 us and Hahn T2 ~33 us at 1 K. Readout is
+        modelled as a symmetric 2% flip, inside that parity range. These are the
+        best values of one study, not a single calibrated operating point.
+        with_T2star adds a T2* dephasing channel on top (double counts dephasing;
+        a pessimistic bound)."""
+        return cls.from_benchmarks(0.9985, 0.9892, readout=0.02,
+                                   T2_us=2.3 if with_T2star else np.inf)
+
+    @classmethod
     def millikelvin(cls) -> "NoiseModel":
         """Foundry devices at mK: >99% fidelities, T2(Hahn) up to 1.9 ms
         (Steinacker et al. 2025). Error values are representative choices."""

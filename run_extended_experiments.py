@@ -34,7 +34,10 @@ def e1():
     out = {"baseline": {}, "k_sweep": {}, "T2_sweep": [], "p2_sweep": [], "t2q_sweep": []}
     n = 20 if QUICK else 60
     for name, nm in (("ideal", NoiseModel.ideal()), ("hot", NoiseModel.hot_qubit()),
-                     ("millikelvin", NoiseModel.millikelvin())):
+                     ("millikelvin", NoiseModel.millikelvin()),
+                     ("hot_p1_exact", NoiseModel(p1=0.021, p2=0.03, T2_us=2.0, readout=0.02)),
+                     ("huang_1K", NoiseModel.huang_1k()),
+                     ("huang_1K_T2star", NoiseModel.huang_1k(with_T2star=True))):
         r = evaluate(nm, k=4, n=n)
         r["prep_ns"] = prep_duration_ns(4, nm)
         out["baseline"][name] = r
@@ -42,6 +45,7 @@ def e1():
         r = evaluate(NoiseModel.hot_qubit(), k=k, n=n)
         r["prep_ns"] = prep_duration_ns(k, NoiseModel.hot_qubit())
         out["k_sweep"][k] = r
+    out["k_sweep_huang_1K"] = {k: evaluate(NoiseModel.huang_1k(), k=k, n=n) for k in (1, 2, 3, 4)}
     for T2 in np.logspace(np.log10(0.5), np.log10(2000), 12):
         only = evaluate(NoiseModel(T2_us=T2), k=4, n=n)
         full = evaluate(NoiseModel(p1=0.014, p2=0.03, T2_us=T2, readout=0.02), k=4, n=n)
@@ -85,7 +89,7 @@ def e2():
 
 
 def e3():
-    out = {}
+    out = {"point_fJ": {m: energy_uncertainty.point_energy_fJ(m) for m in ("hold", "reprep")}}
     for mode in ("hold", "reprep"):
         r = energy_uncertainty.sample(mode=mode, n=20_000 if QUICK else 200_000)
         out[mode] = {k: v for k, v in r.items() if not k.startswith("_")}

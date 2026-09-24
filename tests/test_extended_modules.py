@@ -57,6 +57,14 @@ class TestNoiseChannels(unittest.TestCase):
             ref = (1 - p) * ref + p * (Zq @ ref @ Zq)
         self.assertTrue(np.allclose(_dephase_all(self.rho, 300.0, 1000.0, 3), ref))
 
+    def test_benchmark_mapping_reproduces_average_fidelity(self):
+        from simulations.reprep_noise import _depolarize
+        nm = NoiseModel.from_benchmarks(0.99, 0.99, readout=0.0)
+        bell = np.zeros(4); bell[0] = bell[3] = 1 / np.sqrt(2)
+        rho = _depolarize(np.outer(bell, bell), [1], nm.p1, 2)
+        f_pro = float(bell @ rho @ bell)
+        self.assertAlmostEqual((2 * f_pro + 1) / 3, 0.99, places=10)
+
     def test_more_noise_more_error(self):
         p = random_targets(4, 1, seed=7)[0]
         e_mk = tvd(p, simulate_distribution(p, NoiseModel.millikelvin()))
@@ -81,6 +89,15 @@ class TestEnergyUncertainty(unittest.TestCase):
         r = energy_uncertainty.sample(n=20_000, mode="hold")
         rho = r["spearman_vs_ratio"]
         self.assertEqual(max(rho, key=lambda k: abs(rho[k])), "eps")
+
+    def test_reprep_drive_time_counts_cnot_duration(self):
+        # 15 rotations x 33 ns + 14 CNOTs x 100 ns for k = 4
+        self.assertAlmostEqual(energy_uncertainty.drive_time_s("reprep", 4), 1.895e-6, places=12)
+        self.assertAlmostEqual(energy_uncertainty.drive_time_s("hold"), 33e-9, places=15)
+
+    def test_point_energies(self):
+        self.assertAlmostEqual(energy_uncertainty.point_energy_fJ("hold"), 11.09, places=6)
+        self.assertAlmostEqual(energy_uncertainty.point_energy_fJ("reprep"), 66.95, places=6)
 
     def test_reprep_costs_more(self):
         h = energy_uncertainty.sample(n=20_000, mode="hold")

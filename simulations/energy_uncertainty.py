@@ -8,8 +8,11 @@ can be changed:
 
   E_MTJ        0.1 - 10 fJ      SOT write energy per event
   P_gate       10 - 100 nW      qubit drive power during a gate
-  t_gate       33 ns            per gate
-  n_gates      1 (hold mode) or 2^(k+1) - 3 = 29 (re-preparation, k = 4)
+  t_1q, t_2q   33 ns, 100 ns    single-qubit rotation and CNOT durations
+  gates        hold mode: one 33 ns pulse per event
+               re-preparation: 2^k - 1 rotations (33 ns) and 2^k - 2 CNOTs
+               (100 ns), 15 and 14 for k = 4, i.e. 1.895 us of drive per event.
+               Both gate types are assumed to draw the same drive power.
   E_CMOS       5 - 50 fJ        neuron, decoder and I/O logic at ~1 K
   eps          0.5% - 30%       refrigerator efficiency as a fraction of Carnot
   E_ref        3 - 30 pJ        GPU reference energy per synaptic operation
@@ -38,12 +41,31 @@ def spearman(x, y) -> float:
     return float(np.corrcoef(_rank(x), _rank(y))[0, 1])
 
 
+T_1Q_S, T_2Q_S = 33e-9, 100e-9
+
+
+def drive_time_s(mode: str, k: int = 4) -> float:
+    """Total gate-drive time per synaptic event.
+
+    Earlier versions charged 33 ns to every gate of the re-preparation circuit,
+    which undercounted the 100 ns CNOTs (0.96 us instead of 1.895 us for k = 4).
+    """
+    if mode == "hold":
+        return T_1Q_S
+    return (2 ** k - 1) * T_1Q_S + (2 ** k - 2) * T_2Q_S
+
+
+def point_energy_fJ(mode: str, k: int = 4, p_gate_nW: float = 30.0,
+                    e_mtj_fJ: float = 0.1, e_cmos_fJ: float = 10.0) -> float:
+    """Device-level energy per event at the point values of the paper."""
+    return e_mtj_fJ + p_gate_nW * 1e-9 * drive_time_s(mode, k) * 1e15 + e_cmos_fJ
+
+
 def sample(n: int = 100_000, mode: str = "reprep", k: int = 4, seed: int = 0) -> dict:
     rng = np.random.default_rng(seed)
     e_mtj = _logu(rng, 0.1, 10.0, n)
     p_gate = _logu(rng, 10.0, 100.0, n)
-    n_gates = 1 if mode == "hold" else 2 ** (k + 1) - 3
-    e_qubit = p_gate * 1e-9 * 33e-9 * n_gates * 1e15      # fJ
+    e_qubit = p_gate * 1e-9 * drive_time_s(mode, k) * 1e15   # fJ
     e_cmos = _logu(rng, 5.0, 50.0, n)
     eps = _logu(rng, 0.005, 0.30, n)
     e_ref = _logu(rng, 3000.0, 30000.0, n)               # fJ

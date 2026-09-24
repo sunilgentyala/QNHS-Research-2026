@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/sunilgentyala/QNHS-Research-2026?color=6c5ce7)](https://github.com/sunilgentyala/QNHS-Research-2026/releases)
-[![Tests](https://img.shields.io/badge/tests-90%20passing-2ea44f)](tests/results/test_results.txt)
+[![Tests](https://img.shields.io/badge/tests-93%20passing-2ea44f)](tests/results/test_results.txt)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](requirements.txt)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/website-live-00b894)](https://sunilgentyala.github.io/QNHS-Research-2026/)
@@ -71,7 +71,7 @@ cd QNHS-Research-2026
 pip install -r requirements.txt
 
 python run_all_simulations.py     # all four models + tests + figures/*.png
-python -m pytest tests/ -v        # 90 unit tests
+python -m pytest tests/ -v        # 93 unit tests
 ```
 
 Each model also runs on its own, from any directory:
@@ -128,9 +128,9 @@ The 1 µs MWPM decoder cycle fits 10,000 times into a 10 ms spike window.
 
 | Study | Module | Main result |
 |-------|--------|-------------|
-| Re-preparation under noise | `reprep_noise.py` | Density-matrix simulation of the 29-gate (k = 4) loading circuit. At ~1.5 K noise the sampled distribution is off by TVD 0.19, but the mean weight by only 0.017. Gate and readout errors, not T2, set the floor. |
+| Re-preparation under noise | `reprep_noise.py` | Density-matrix simulation of the 29-gate (k = 4) loading circuit. With the original pessimistic ~1.5 K model the sampled distribution is off by TVD 0.19, but the mean weight by only 0.017. With the 1 K fidelities of Huang et al. (Nature 2024), mapped to channel parameters, TVD falls to 0.066 (k = 4) and 0.024 (k = 2). Gate and readout errors, not T2, set the floor. |
 | Network learning | `network_learning.py` | 20-input LIF neuron, 5 seeds, 200 s. Q-STDP learns input correlations (selectivity 0.39 to 0.41 vs 0.47 classical) with or without 1 K noise; weight entropy drops from 3.4 to 1.7 bits only on learned synapses. |
-| Energy uncertainty | `energy_uncertainty.py` | 200,000 Monte Carlo samples. QNHS beats a 10 pJ GPU reference in 2.5% (hold) and 0.06% (re-preparation) of samples; refrigerator efficiency dominates (Spearman 0.81). |
+| Energy uncertainty | `energy_uncertainty.py` | 200,000 Monte Carlo samples. QNHS beats a 10 pJ GPU reference in 2.5% of samples in hold mode and in none in re-preparation mode (67 fJ per event at the point values, since v1.4.0 charges CNOTs their 100 ns); refrigerator efficiency dominates (Spearman 0.81 to 0.82). |
 | Poisoning | `poisoning.py` | A 5% share of attacker-timed spikes moves the mean weight 0.46 to 0.61. Update clipping removes about 60% of the shift; a binomial timing test detects it with 98% probability in 1,000 pairs. |
 | MTJ TRNG at 1 K | `mtj_trng.py` | Holding P(switch) = 0.50 +/- 0.01 needs a current window of 2.3e-5 (relative) at 1 K vs 1.7e-3 at 300 K, 72x tighter. |
 
@@ -160,7 +160,7 @@ QNHS-Research-2026/
 │   ├── qstdp_simulation.py      # Q-STDP amplitude learning
 │   ├── mtj_resistance_model.py  # PMA-MTJ four-state model
 │   └── surface_code_analysis.py # distance-d surface code coherence
-├── tests/                       # 90 unit tests + results/ snapshots
+├── tests/                       # 93 unit tests + results/ snapshots
 ├── results/extended_results.json
 ├── references/references.bib    # 15 references, each checked against Crossref
 ├── security/threat_model.md     # hardware security threat model

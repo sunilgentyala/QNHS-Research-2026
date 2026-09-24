@@ -6,7 +6,7 @@
 <title>QNHS: Quantum-Neuromorphic Hybrid Substrate</title>
 <meta name="description" content="Open simulation suite for QNHS, a nanoscale architecture stacking spin qubits, spintronic synapses and cryo-CMOS for ~11 fJ synaptic events.">
 <meta property="og:title" content="QNHS: Quantum-Neuromorphic Hybrid Substrate">
-<meta property="og:description" content="Spin qubits + spintronic synapses + cryo-CMOS in one stack. Energy, Q-STDP learning, MTJ device and surface-code models, with 90 tests.">
+<meta property="og:description" content="Spin qubits + spintronic synapses + cryo-CMOS in one stack. Energy, Q-STDP learning, MTJ device and surface-code models, with 93 tests.">
 <meta property="og:image" content="https://sunilgentyala.github.io/QNHS-Research-2026/assets/energy_comparison.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -166,7 +166,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
       <li><b>Three-plane monolithic architecture</b><span>Quantum, spintronic and CMOS layers integrated vertically instead of linked across a cryostat.</span></li>
       <li><b>Quantum synaptic encoding</b><span>A synapse is a distribution over 2<sup>k</sup> weight states, which gives Bayesian uncertainty with no extra sampling hardware.</span></li>
       <li><b>Q-STDP learning rule</b><span>Spike-timing plasticity in the amplitude domain. Potentiation shifts probability toward higher weights and depression toward lower ones.</span></li>
-      <li><b>Coherence budget</b><span>d = 3 gives a 10x gain at 0.1% error but none at the ~1% measured above 1 K. Holding amplitudes for a 10 ms window is out of reach today; re-preparing the state on each spike needs only ~1 &micro;s.</span></li>
+      <li><b>Coherence budget</b><span>d = 3 gives a 10x gain at 0.1% error but none at the ~1% measured above 1 K. Holding amplitudes for a 10 ms window is out of reach today; re-preparing the state on each spike needs ~1.9 &micro;s of gates, plus initialization and readout.</span></li>
       <li><b>Energy with cooling</b><span>11.1 fJ per event at the device, at least 3.3 pJ at the wall plug once the Carnot cost of 1 K operation is charged.</span></li>
       <li><b>Hardware security analysis</b><span>Side channels, learning-rule poisoning and cryogenic Trojans, plus candidate PUF and random-number primitives.</span></li>
     </ol>
@@ -239,7 +239,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
 cd QNHS-Research-2026
 pip install -r requirements.txt
 
-python run_all_simulations.py    # models and 90 tests, figures/*.png
+python run_all_simulations.py    # models and 93 tests, figures/*.png
 python -m pytest tests/ -v</pre>
   </div>
 </section>

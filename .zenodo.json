@@ -1,0 +1,23 @@
+{
+  "upload_type": "software",
+  "title": "QNHS: Quantum-Neuromorphic Hybrid Substrate simulation suite",
+  "description": "Open simulation code, unit tests, extended experiment results and a hardware security threat model for a quantum-neuromorphic hybrid substrate: energy with cooling cost and Monte Carlo uncertainty, Q-STDP learning, density-matrix simulation of amplitude re-preparation under noise, spiking-network learning, MTJ device and surface-code coherence models, and spike-timing poisoning analysis.",
+  "creators": [
+    {
+      "name": "Gentyala, Sunil",
+      "affiliation": "HCLTech (HCL America Inc.)",
+      "orcid": "0009-0005-2642-3479"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "quantum computing",
+    "neuromorphic computing",
+    "spike-timing-dependent plasticity",
+    "spintronics",
+    "surface code",
+    "hardware security",
+    "simulation"
+  ],
+  "access_right": "open"
+}

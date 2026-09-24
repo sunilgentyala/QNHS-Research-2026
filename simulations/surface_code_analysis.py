@@ -26,7 +26,7 @@ class SurfaceCodeParams:
     threshold_error_rate: float = 0.01  # ~1% surface code threshold
     syndrome_cycle_us: float = 1.0      # MWPM decoder latency [us]
     spike_integration_ms: float = 10.0  # SNN spike integration window [ms]
-    T2_physical_ms: float = 1.0         # physical qubit T2 at 1K [ms]
+    T2_physical_ms: float = 1.0         # assumed T2 at 1 K [ms]; ~0.002 ms demonstrated (Yang 2020)
 
 
 class SurfaceCodeAnalyzer:

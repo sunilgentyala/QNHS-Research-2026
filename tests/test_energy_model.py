@@ -95,14 +95,16 @@ class TestTotalSynapticEnergy(unittest.TestCase):
         self.assertGreater(m.e_cmos_fJ(), m.e_mtj_fJ())
         self.assertGreater(m.e_cmos_fJ(), m.e_qubit_fJ())
 
-    def test_wall_plug_advantage_over_gpu(self):
-        """Wall-plug advantage vs. H100 must be ~20x after 50x Carnot penalty (Table I)."""
-        r = self.model.refrigeration_overhead(carnot_factor=50.0)
-        advantage = r["wall_plug_advantage_x"]
-        self.assertGreater(advantage, 12.0,
-            msg="Wall-plug advantage must be at least 12x over H100")
-        self.assertLess(advantage, 30.0,
-            msg="Wall-plug advantage must not exceed 30x (bounded by refrigeration overhead)")
+    def test_wall_plug_advantage_at_carnot_limit(self):
+        """Even an ideal (Carnot) refrigerator leaves only a ~3x edge over H100."""
+        r = self.model.refrigeration_overhead(fraction_of_carnot=1.0)
+        self.assertGreater(r["wall_plug_advantage_x"], 2.5)
+        self.assertLess(r["wall_plug_advantage_x"], 3.5)
+
+    def test_realistic_cryocooler_erases_advantage(self):
+        """At 10% of Carnot the wall-plug energy exceeds the H100 baseline."""
+        r = self.model.refrigeration_overhead(fraction_of_carnot=0.1)
+        self.assertLess(r["wall_plug_advantage_x"], 1.0)
 
     def test_device_level_advantage_three_orders(self):
         """Device-level E_syn advantage must be ~3 orders of magnitude over H100 (10 pJ vs 11 fJ)."""
@@ -121,19 +123,23 @@ class TestTotalSynapticEnergy(unittest.TestCase):
 
 class TestRefrigerationOverhead(unittest.TestCase):
 
-    def test_carnot_factor_50(self):
-        """Carnot penalty at 1K from 300K is ~50x (paper Section IV-A)."""
+    def test_carnot_bound_at_1K(self):
+        """Carnot work to remove heat at 1 K and reject at 300 K is 299 J/J."""
         m = QNHSEnergyModel(MTJParams(), QubitParams(), CMOSParams())
-        r = m.refrigeration_overhead(carnot_factor=50.0)
-        self.assertAlmostEqual(
-            r["e_wall_plug_fJ"],
-            r["e_syn_fJ"] * 50.0,
-            places=5
-        )
+        r = m.refrigeration_overhead(fraction_of_carnot=1.0)
+        self.assertAlmostEqual(r["cooling_factor"], 300.0, places=6)
+        self.assertAlmostEqual(r["e_wall_plug_fJ"], r["e_syn_fJ"] * 300.0, places=6)
+
+    def test_breakeven_efficiency(self):
+        """Break-even refrigerator efficiency must reproduce the H100 baseline."""
+        m = QNHSEnergyModel(MTJParams(), QubitParams(), CMOSParams())
+        f = m.breakeven_fraction_of_carnot()
+        r = m.refrigeration_overhead(fraction_of_carnot=f)
+        self.assertAlmostEqual(r["e_wall_plug_fJ"], 10000.0, places=3)
 
     def test_refrigeration_reduces_advantage(self):
         m = QNHSEnergyModel(MTJParams(), QubitParams(), CMOSParams())
-        r = m.refrigeration_overhead(carnot_factor=50.0)
+        r = m.refrigeration_overhead()
         self.assertLess(
             r["wall_plug_advantage_x"],
             r["device_advantage_x"],

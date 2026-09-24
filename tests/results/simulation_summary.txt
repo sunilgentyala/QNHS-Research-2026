@@ -2,7 +2,7 @@
 ############################################################
   QNHS Research Simulation Suite
   Sunil Gentyala | ORCID: 0009-0005-2642-3479
-  Run date: 2026-09-23 23:36
+  Run date: 2026-09-24 00:05
   GitHub: https://github.com/sunilgentyala/QNHS-Research-2026
 ############################################################
 
@@ -12,14 +12,15 @@
 =======================================================
   QNHS Synaptic Event Energy Budget
 =======================================================
-  E_MTJ  (Landauer-Buttiker): 0.100 fJ
+  E_MTJ  (SOT write pulse):   0.100 fJ
   E_qubit (gate drive):        0.990 fJ
   E_CMOS  (cryo-CMOS periph): 10.000 fJ
   E_syn   (total):             11.090 fJ
 -------------------------------------------------------
-  Wall-plug (50x Carnot):      554.5 fJ
+  Wall-plug (Carnot limit):    3327 fJ  (300x)
   Device-level advantage:      902x vs H100
-  Wall-plug advantage:         18.0x vs H100
+  Wall-plug advantage (ideal): 3.0x vs H100
+  Break-even cryocooler:       33% of Carnot
 =======================================================
 
 ============================================================
@@ -88,6 +89,24 @@
 ============================================================
   STATUS: Comfortably within QNHS operational requirements.
 
+  -- Demonstrated hot-qubit data (Yang et al. 2020: ~2 us, 98.6% at 1.5 K) --
+============================================================
+  Distance-3 Surface Code Performance (QNHS)
+============================================================
+  Code distance (d):             3
+  Physical qubits per logical:   13
+  Physical error rate:           1.40%
+  Surface code threshold:        1.0%
+  Logical error rate:            1.96e-02
+  Coherence enhancement factor:  0.7x
+  Physical T2 at 1K:             0.0 ms
+  Logical T2 (projected):        0 ms
+  Spike integration window:      10.0 ms
+  Syndrome cycles per window:    10000
+  Coherence margin:              0.0x (>1 = viable)
+============================================================
+  STATUS: Insufficient; requires higher d or better physical T2.
+
 ============================================================
   5. Unit Test Summary
 ============================================================
@@ -96,14 +115,14 @@ platform win32 -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0
 rootdir: QNHS-Research-2026
 plugins: anyio-4.13.0, hypothesis-6.163.0, langsmith-0.9.7, asyncio-1.4.0, cov-7.1.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collected 73 items
+collected 75 items
 
-tests\test_energy_model.py ..............                                [ 19%]
-tests\test_mtj_model.py ......................                           [ 49%]
-tests\test_qstdp.py ......................                               [ 79%]
+tests\test_energy_model.py ................                              [ 21%]
+tests\test_mtj_model.py ......................                           [ 50%]
+tests\test_qstdp.py ......................                               [ 80%]
 tests\test_surface_code.py ...............                               [100%]
 
-============================= 73 passed in 2.48s ==============================
+============================= 75 passed in 0.92s ==============================
 
 
 ============================================================
@@ -121,8 +140,9 @@ Saved: figures/surface_code_scaling.png
   E_qubit = 0.990 fJ   (30 nW gate drive, 33 ns pi-pulse)
   E_CMOS  = 10.0 fJ   (cryo-CMOS LIF + MWPM, 3nm FinFET at 1K)
   E_syn   = 11.09 fJ   << paper target: ~11 fJ
-  Wall-plug advantage vs H100: 18.0x  (paper: ~20x)
-  Logical T2 (d=3, T2_phys=1ms): 10 ms   (paper: ~10-100 ms)
+  Wall-plug vs H100 (Carnot limit): 3.0x
+  Break-even cryocooler efficiency: 33% of Carnot
+  Logical T2 (d=3, T2_phys=1ms): 10 ms   (assumed T2; ~2 us shown at 1.5 K)
   Unit tests: ALL PASSED
   Figures:    figures/*.png
 ############################################################

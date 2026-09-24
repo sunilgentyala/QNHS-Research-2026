@@ -2,11 +2,11 @@
 
 # QNHS: Quantum-Neuromorphic Hybrid Substrate
 
-### Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid Architectures for Post-von Neumann Computation
+### Open models for a nanoscale spin-qubit + spintronic + cryo-CMOS neuromorphic substrate, and an honest check of whether it can work
 
 [![CI](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/sunilgentyala/QNHS-Research-2026?color=6c5ce7)](https://github.com/sunilgentyala/QNHS-Research-2026/releases)
-[![Tests](https://img.shields.io/badge/tests-73%20passing-2ea44f)](tests/results/test_results.txt)
+[![Tests](https://img.shields.io/badge/tests-75%20passing-2ea44f)](tests/results/test_results.txt)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](requirements.txt)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/website-live-00b894)](https://sunilgentyala.github.io/QNHS-Research-2026/)
@@ -24,21 +24,22 @@
 
 Simulation code, unit tests, references and a hardware security threat model for **QNHS**, a proposed
 monolithic three-plane architecture that stacks spin qubits, spintronic synapses and cryo-CMOS
-control into one device. The code reproduces the paper's energy, learning, device and error-correction
-numbers so they can be checked rather than taken on trust.
+control into one device. The code computes the energy, learning, device and error-correction numbers
+so they can be checked rather than taken on trust, including the numbers that count against the idea.
 
-> **Status:** research paper under review (2026). All QNHS figures are **theoretical projections** from
-> the models in this repository, not measurements of fabricated hardware.
+> All QNHS figures are **theoretical projections** from the models in this repository, not measurements
+> of fabricated hardware.
 
 ## At a glance
 
 | | |
 |---|---|
 | **~11.1 fJ** | modeled energy per synaptic event (device level) |
-| **~18x** | wall-plug advantage over an NVIDIA H100 baseline, after a 50x cryogenic cooling penalty |
+| **≥3.3 pJ** | wall-plug energy per event once the Carnot cost of cooling 1 K to 300 K is charged (only ~3x under a 10 pJ GPU reference, even with an ideal refrigerator) |
+| **33%** | refrigerator efficiency (fraction of Carnot) needed just to break even with the GPU reference |
 | **2^k states** | weight distribution per synapse with k qubits (16 states for k = 4) |
-| **10 to 50 ms** | projected logical T2 with a distance-3 surface code (1 ms to 5 ms physical T2) |
-| **73 / 73** | unit tests passing |
+| **~2 µs** | coherence demonstrated for silicon qubits above 1 K (Yang et al., Nature 2020), versus a 10 ms spike window: the main open gap |
+| **75 / 75** | unit tests passing |
 
 ## Architecture
 
@@ -55,11 +56,12 @@ numbers so they can be checked rather than taken on trust.
 
 ## Key contributions
 
-1. **Three-plane monolithic architecture.** Quantum, spintronic and CMOS planes bonded by Cu-Cu thermocompression at 200 nm pitch.
+1. **Three-plane monolithic architecture.** Quantum, spintronic and CMOS planes joined by hybrid bonding (200 nm pitch is a design target).
 2. **Quantum synaptic encoding.** Each synapse is a k-qubit state in a 2^k-dimensional Hilbert space, so the weight is a distribution with built-in Bayesian uncertainty.
 3. **Q-STDP learning rule.** Spike-timing-dependent plasticity in the amplitude domain. LTP moves probability mass toward higher-weight basis states and LTD moves it toward lower ones.
-4. **Distance-3 surface code protection.** A 10x coherence gain at 0.1% physical error keeps logical qubits coherent across a 10 ms spike integration window.
-5. **Hardware security analysis.** Side-channel, adversarial-weight, trojan and supply-chain threats, plus on-chip primitives: quantum-dot PUFs, MTJ true random number generation and crossbar-accelerated post-quantum cryptography.
+4. **Error-correction and coherence budget.** d = 3 gives a 10x gain at 0.1% physical error but none at the ~1% error rates measured above 1 K, so holding amplitudes for a 10 ms spike window is out of reach today.
+5. **Energy model with cooling.** 11.1 fJ per event at the device, at least 3.3 pJ at the wall plug once the Carnot cost of 1 K operation is charged.
+6. **Hardware security analysis.** Side-channel, learning-rule poisoning, Trojan and supply-chain threats, plus candidate primitives (quantum-dot PUFs, MTJ random-number generation).
 
 ## Quick start
 
@@ -69,7 +71,7 @@ cd QNHS-Research-2026
 pip install -r requirements.txt
 
 python run_all_simulations.py     # all four models + tests + figures/*.png
-python -m pytest tests/ -v        # 73 unit tests
+python -m pytest tests/ -v        # 75 unit tests
 ```
 
 Each model also runs on its own, from any directory:
@@ -123,15 +125,14 @@ The 1 µs MWPM decoder cycle fits 10,000 times into a 10 ms spike window.
 
 | Metric | NVIDIA H100 | Intel Loihi 2 | IBM NorthPole | QNHS (projected) |
 |--------|-------------|---------------|---------------|------------------|
-| E_syn (device level) | ~10 pJ | ~1 pJ | ~0.5 pJ | **~11 fJ** |
-| Advantage vs H100 | 1x | ~10x | ~20x | **~18x wall-plug** |
+| Energy evidence | ~10 pJ/event (reference) | measured chips | 25x FPS/W vs 12 nm GPU | **11.1 fJ device, ≥3.3 pJ wall-plug** |
 | Weight encoding | FP16 | INT8 | INT8 | **2^k quantum states** |
 | Bayesian uncertainty | None | None | None | **Intrinsic** |
 | Spike-native | No | Yes | Partial | **Yes** |
-| Security primitives | None | None | None | **PUF + QRNG + PQC** |
+| Security primitives | None | None | None | **PUF, TRNG (proposed)** |
 | Operating temperature | 300 K | 300 K | 300 K | **~1 K** |
 
-The QNHS wall-plug figure includes a ~50x Carnot refrigeration overhead from 300 K to 1 K. The other columns come from published specifications.
+The QNHS wall-plug figure charges the Carnot minimum of 299 J of work per joule removed at 1 K. Real refrigerators do worse, which raises the cost further (see `refrigeration_overhead(fraction_of_carnot=...)`).
 
 ## Repository structure
 
@@ -143,8 +144,8 @@ QNHS-Research-2026/
 │   ├── qstdp_simulation.py      # Q-STDP amplitude learning
 │   ├── mtj_resistance_model.py  # PMA-MTJ four-state model
 │   └── surface_code_analysis.py # distance-d surface code coherence
-├── tests/                       # 73 unit tests + results/ snapshots
-├── references/references.bib    # 26 BibTeX entries with DOIs
+├── tests/                       # 75 unit tests + results/ snapshots
+├── references/references.bib    # 15 references, each checked against Crossref
 ├── security/threat_model.md     # hardware security threat model
 ├── docs/                        # GitHub Pages website
 └── figures/                     # generated by the runner (git-ignored)
@@ -156,9 +157,9 @@ The manuscript itself is kept out of this repository.
 
 The threat model covers:
 
-- **Side channels.** Lu et al. (GLSVLSI 2025, [10.1145/3716368.3735264](https://doi.org/10.1145/3716368.3735264)) fingerprinted cloud quantum hardware in 10 queries. Choudhury et al. (NDSS 2025, [arXiv:2412.10507](https://arxiv.org/abs/2412.10507)) reconstructed 85.7% of circuits through crosstalk.
-- **Adversarial weights.** Amplitude encoding adds stochastic resilience against gradient attacks. Differential privacy counters Q-STDP training-time poisoning.
-- **Primitives.** Quantum-dot PUFs from charge-noise signatures, MTJ-based QRNG, and crossbar acceleration for NIST FIPS 203/204/205 lattice schemes.
+- **Side channels.** Lu et al. (GLSVLSI 2025, [10.1145/3716368.3735264](https://doi.org/10.1145/3716368.3735264)) fingerprinted cloud quantum hardware in 10 queries. Choudhury et al. (NDSS 2025, [10.14722/ndss.2025.242185](https://doi.org/10.14722/ndss.2025.242185)) used crosstalk to identify a victim's quantum algorithm with up to 85.7% accuracy.
+- **Adversarial weights.** Projective sampling makes inference stochastic, but stochastic defenses can be bypassed by gradient averaging, so no robustness is claimed without evaluation. Q-STDP opens a training-time poisoning channel; update clipping and spike-statistics monitoring are candidate defenses.
+- **Primitives.** Quantum-dot PUFs from charge-noise signatures and MTJ random-number generation (thermal switching is strongly suppressed at 1 K, so this needs near-critical biasing or low-barrier cells). Crossbar acceleration of lattice PQC is a research direction only: ML-KEM needs exact mod-3329 arithmetic that 2-bit analog cells cannot supply directly.
 - **Supply chain.** Trusted-foundry flow and post-fabrication verification at 1 K for cryo-CMOS logic locking.
 
 Full document: [security/threat_model.md](security/threat_model.md)
@@ -166,16 +167,15 @@ Full document: [security/threat_model.md](security/threat_model.md)
 ## Citation
 
 ```bibtex
-@misc{gentyala2026qnhs,
+@software{gentyala2026qnhs,
   author = {Gentyala, Sunil},
-  title  = {Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid
-            Architectures for Post-von Neumann Computation},
+  title  = {{QNHS}: Quantum-Neuromorphic Hybrid Substrate simulation suite},
   year   = {2026},
-  note   = {Code: https://github.com/sunilgentyala/QNHS-Research-2026}
+  url    = {https://github.com/sunilgentyala/QNHS-Research-2026}
 }
 ```
 
-GitHub's **"Cite this repository"** button reads [CITATION.cff](CITATION.cff). The entry will be updated with the venue once the paper is published.
+GitHub's **"Cite this repository"** button reads [CITATION.cff](CITATION.cff).
 
 ## Author
 

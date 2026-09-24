@@ -6,7 +6,7 @@
 <title>QNHS: Quantum-Neuromorphic Hybrid Substrate</title>
 <meta name="description" content="Open simulation suite for QNHS, a nanoscale architecture stacking spin qubits, spintronic synapses and cryo-CMOS for ~11 fJ synaptic events.">
 <meta property="og:title" content="QNHS: Quantum-Neuromorphic Hybrid Substrate">
-<meta property="og:description" content="Spin qubits + spintronic synapses + cryo-CMOS in one stack. Energy, Q-STDP learning, MTJ device and surface-code models, with 73 tests.">
+<meta property="og:description" content="Spin qubits + spintronic synapses + cryo-CMOS in one stack. Energy, Q-STDP learning, MTJ device and surface-code models, with 75 tests.">
 <meta property="og:image" content="https://sunilgentyala.github.io/QNHS-Research-2026/assets/energy_comparison.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -120,13 +120,12 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
     <span class="eyebrow">Open research code · MIT</span>
     <h1>Quantum-<span>Neuromorphic</span><br>Hybrid Substrate</h1>
     <p class="sub">One monolithic stack of spin qubits, spintronic synapses and cryo-CMOS control, modeled at about <b>11 fJ per synaptic event</b>, with uncertainty built into every weight.</p>
-    <p class="paper">Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid Architectures for Post-von Neumann Computation</p>
     <div class="cta">
       <a class="btn primary" href="https://github.com/sunilgentyala/QNHS-Research-2026">View on GitHub</a>
       <a class="btn" href="#run">Run the simulations</a>
       <a class="btn" href="https://github.com/sunilgentyala/QNHS-Research-2026/releases">Releases</a>
     </div>
-    <p class="note">Paper under review (2026). All QNHS numbers on this page are theoretical projections from the models in the repository, not measurements of fabricated hardware.</p>
+    <p class="note">All QNHS numbers on this page are theoretical projections from the models in the repository, not measurements of fabricated hardware. The models report the numbers that count against the idea too.</p>
   </div>
 </header>
 
@@ -136,10 +135,11 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
     <p class="lead">Every figure below comes from running <code>python run_all_simulations.py</code>.</p>
     <div class="stats">
       <div class="stat"><b>11.09 fJ</b><span>energy per synaptic event, device level</span></div>
-      <div class="stat"><b>~18x</b><span>wall-plug gain vs. NVIDIA H100, after 50x cooling cost</span></div>
+      <div class="stat"><b>≥3.3 pJ</b><span>wall-plug energy once the Carnot cost of cooling is charged</span></div>
+      <div class="stat"><b>33%</b><span>of Carnot efficiency needed to break even with a 10 pJ GPU reference</span></div>
       <div class="stat"><b>2<sup>k</sup></b><span>weight states per k-qubit synapse</span></div>
-      <div class="stat"><b>10 to 50 ms</b><span>logical T2 with a distance-3 surface code</span></div>
-      <div class="stat"><b>73 / 73</b><span>unit tests passing in CI</span></div>
+      <div class="stat"><b>~2 µs</b><span>coherence shown above 1 K, vs. a 10 ms spike window</span></div>
+      <div class="stat"><b>75 / 75</b><span>unit tests passing in CI</span></div>
     </div>
   </div>
 </section>
@@ -161,13 +161,14 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
 <section>
   <div class="wrap">
     <h2>Contributions</h2>
-    <p class="lead">What the paper proposes and the code checks.</p>
+    <p class="lead">What is proposed, and what the code checks.</p>
     <ol class="contrib">
       <li><b>Three-plane monolithic architecture</b><span>Quantum, spintronic and CMOS layers integrated vertically instead of linked across a cryostat.</span></li>
       <li><b>Quantum synaptic encoding</b><span>A synapse is a distribution over 2<sup>k</sup> weight states, which gives Bayesian uncertainty with no extra sampling hardware.</span></li>
       <li><b>Q-STDP learning rule</b><span>Spike-timing plasticity in the amplitude domain. Potentiation shifts probability toward higher weights and depression toward lower ones.</span></li>
-      <li><b>Surface-code protection</b><span>At 0.1% physical error, d = 3 cuts the logical error rate to 1e-4 and extends coherence 10x.</span></li>
-      <li><b>Hardware security analysis</b><span>Threats to quantum-neuromorphic hardware, plus on-chip PUF, QRNG and PQC primitives.</span></li>
+      <li><b>Coherence budget</b><span>d = 3 gives a 10x gain at 0.1% error but none at the ~1% measured above 1 K. Holding amplitudes for a 10 ms window is out of reach today; re-preparing the state on each spike needs only ~1 &micro;s.</span></li>
+      <li><b>Energy with cooling</b><span>11.1 fJ per event at the device, at least 3.3 pJ at the wall plug once the Carnot cost of 1 K operation is charged.</span></li>
+      <li><b>Hardware security analysis</b><span>Side channels, learning-rule poisoning and cryogenic Trojans, plus candidate PUF and random-number primitives.</span></li>
     </ol>
   </div>
 </section>
@@ -178,8 +179,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
     <p class="lead">Four models, each with its own test file.</p>
 
     <figure>
-      <img src="assets/energy_comparison.png" alt="Bar chart of energy per synaptic event: H100 10000 fJ, Loihi 2 1000 fJ, NorthPole 500 fJ, QNHS 11 fJ device and 550 fJ wall-plug" loading="lazy">
-      <figcaption><b>Energy per synaptic event.</b> E_MTJ 0.10 fJ + E_qubit 0.99 fJ + E_CMOS 10.0 fJ = 11.09 fJ. That is about 900x below the ~10 pJ H100 figure at device level, or ~18x once the 50x refrigeration overhead is charged.</figcaption>
+      <img src="assets/energy_comparison.png" alt="Bar chart of energy per synaptic event: H100 10000 fJ, Loihi 2 1000 fJ, NorthPole 500 fJ, QNHS 11 fJ device, 3.3 pJ wall-plug at the Carnot limit and 33 pJ at 10% of Carnot" loading="lazy">
+      <figcaption><b>Energy per synaptic event.</b> E_MTJ 0.10 fJ + E_qubit 0.99 fJ + E_CMOS 10.0 fJ = 11.09 fJ. That is about 900x below a ~10 pJ GPU reference at device level. Cooling changes the picture: rejecting heat from 1 K to 300 K costs at least 299 J per joule, so even an ideal refrigerator gives 3.3 pJ per event, and QNHS only breaks even if the refrigerator reaches 33% of Carnot.</figcaption>
     </figure>
 
     <figure>
@@ -204,11 +205,11 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
         <thead><tr><th>Metric</th><th>NVIDIA H100</th><th>Intel Loihi 2</th><th>IBM NorthPole</th><th>QNHS (projected)</th></tr></thead>
         <tbody>
           <tr><td>E_syn, device level</td><td>~10 pJ</td><td>~1 pJ</td><td>~0.5 pJ</td><td class="q">~11 fJ</td></tr>
-          <tr><td>Advantage vs. H100</td><td>1x</td><td>~10x</td><td>~20x</td><td class="q">~18x wall-plug</td></tr>
+          <tr><td>Energy evidence</td><td>~10 pJ/event (reference)</td><td>Measured chips</td><td>25x FPS/W vs. 12 nm GPU</td><td class="q">11.1 fJ device, ≥3.3 pJ wall-plug</td></tr>
           <tr><td>Weight encoding</td><td>FP16</td><td>INT8</td><td>INT8</td><td class="q">2<sup>k</sup> quantum states</td></tr>
           <tr><td>Bayesian uncertainty</td><td>None</td><td>None</td><td>None</td><td class="q">Intrinsic</td></tr>
           <tr><td>Spike-native</td><td>No</td><td>Yes</td><td>Partial</td><td class="q">Yes</td></tr>
-          <tr><td>Security primitives</td><td>None</td><td>None</td><td>None</td><td class="q">PUF + QRNG + PQC</td></tr>
+          <tr><td>Security primitives</td><td>None</td><td>None</td><td>None</td><td class="q">PUF, TRNG (proposed)</td></tr>
           <tr><td>Operating temperature</td><td>300 K</td><td>300 K</td><td>300 K</td><td class="q">~1 K</td></tr>
         </tbody>
       </table>
@@ -222,9 +223,9 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
     <h2>Security</h2>
     <p class="lead">Quantum-neuromorphic hardware inherits threats from both of its parents. The <a href="https://github.com/sunilgentyala/QNHS-Research-2026/blob/main/security/threat_model.md">threat model</a> covers four areas.</p>
     <div class="grid2">
-      <div class="card"><h3>Side channels</h3><p>Timing fingerprinting of cloud quantum hardware in 10 queries (<a href="https://doi.org/10.1145/3716368.3735264">GLSVLSI 2025</a>) and 85.7% circuit reconstruction via crosstalk (<a href="https://arxiv.org/abs/2412.10507">NDSS 2025</a>).</p></div>
-      <div class="card"><h3>Adversarial weights</h3><p>Amplitude encoding adds stochastic resilience to gradient attacks. Differential privacy guards Q-STDP against training-time poisoning.</p></div>
-      <div class="card"><h3>On-chip primitives</h3><p>Quantum-dot PUFs from charge noise, MTJ true random numbers, and crossbar acceleration for NIST FIPS 203/204/205.</p></div>
+      <div class="card"><h3>Side channels</h3><p>Timing fingerprinting of cloud quantum hardware in 10 queries (<a href="https://doi.org/10.1145/3716368.3735264">GLSVLSI 2025</a>) and up to 85.7% accuracy identifying a victim's algorithm via crosstalk (<a href="https://doi.org/10.14722/ndss.2025.242185">NDSS 2025</a>).</p></div>
+      <div class="card"><h3>Adversarial weights</h3><p>Sampling makes inference stochastic, but stochastic defenses can be bypassed by gradient averaging, so no robustness is claimed without testing. Q-STDP opens a training-time poisoning channel.</p></div>
+      <div class="card"><h3>On-chip primitives</h3><p>Quantum-dot PUFs from charge noise and MTJ random numbers. Thermal switching is suppressed at 1 K, so random-number cells need near-critical biasing. Crossbar PQC acceleration is a research direction only.</p></div>
       <div class="card"><h3>Supply chain</h3><p>Trusted-foundry flow and post-fabrication verification at 1 K for cryo-CMOS logic locking.</p></div>
     </div>
   </div>
@@ -238,7 +239,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
 cd QNHS-Research-2026
 pip install -r requirements.txt
 
-python run_all_simulations.py    # four models, 73 tests, figures/*.png
+python run_all_simulations.py    # four models, 75 tests, figures/*.png
 python -m pytest tests/ -v</pre>
   </div>
 </section>
@@ -246,13 +247,12 @@ python -m pytest tests/ -v</pre>
 <section id="cite">
   <div class="wrap">
     <h2>Cite</h2>
-    <p class="lead">The entry will be updated with the venue once the paper is published. <a href="https://github.com/sunilgentyala/QNHS-Research-2026/blob/main/CITATION.cff">CITATION.cff</a> is also available.</p>
-<pre>@misc{gentyala2026qnhs,
+    <p class="lead">To cite the software, use the entry below or <a href="https://github.com/sunilgentyala/QNHS-Research-2026/blob/main/CITATION.cff">CITATION.cff</a>.</p>
+<pre>@software{gentyala2026qnhs,
   author = {Gentyala, Sunil},
-  title  = {Entangled Intelligence: Nanoscale Quantum-Neuromorphic Hybrid
-            Architectures for Post-von Neumann Computation},
+  title  = {{QNHS}: Quantum-Neuromorphic Hybrid Substrate simulation suite},
   year   = {2026},
-  note   = {Code: https://github.com/sunilgentyala/QNHS-Research-2026}
+  url    = {https://github.com/sunilgentyala/QNHS-Research-2026}
 }</pre>
   </div>
 </section>

@@ -94,6 +94,13 @@ def run_surface_code():
         T2_physical_ms=5.0,
     )
     SurfaceCodeAnalyzer(params_enriched).print_report()
+
+    print("\n  -- Demonstrated hot-qubit data (Yang et al. 2020: ~2 us, 98.6% at 1.5 K) --")
+    SurfaceCodeAnalyzer(SurfaceCodeParams(
+        distance=3,
+        physical_error_rate=0.014,
+        T2_physical_ms=0.002,
+    )).print_report()
     return analyzer
 
 
@@ -147,10 +154,11 @@ def main():
     print(f"  E_CMOS  = {e.e_cmos_fJ():.1f} fJ   (cryo-CMOS LIF + MWPM, 3nm FinFET at 1K)")
     print(f"  E_syn   = {e.total_energy_fJ():.2f} fJ   << paper target: ~11 fJ")
     r = e.refrigeration_overhead()
-    print(f"  Wall-plug advantage vs H100: {r['wall_plug_advantage_x']:.1f}x  (paper: ~20x)")
+    print(f"  Wall-plug vs H100 (Carnot limit): {r['wall_plug_advantage_x']:.1f}x")
+    print(f"  Break-even cryocooler efficiency: {e.breakeven_fraction_of_carnot()*100:.0f}% of Carnot")
     from simulations.surface_code_analysis import SurfaceCodeParams, SurfaceCodeAnalyzer
     sc = SurfaceCodeAnalyzer(SurfaceCodeParams())
-    print(f"  Logical T2 (d=3, T2_phys=1ms): {sc.logical_T2_ms:.0f} ms   (paper: ~10-100 ms)")
+    print(f"  Logical T2 (d=3, T2_phys=1ms): {sc.logical_T2_ms:.0f} ms   (assumed T2; ~2 us shown at 1.5 K)")
     print(f"  Unit tests: {'ALL PASSED' if tests_passed else 'SOME FAILED'}")
     print("  Figures:    figures/*.png")
     print("#" * 60 + "\n")

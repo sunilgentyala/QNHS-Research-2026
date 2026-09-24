@@ -93,11 +93,12 @@ exploited defensively:
 - Enrollment: measure charge noise spectrum at wafer probe.
 - Authentication: challenge-response via qubit frequency shifts under applied gate voltages.
 
-#### 2.3.2 MTJ-Based Quantum Random Number Generation (QRNG)
-- Stochastic MTJ switching under sub-threshold current pulses generates **true random bits**
-  from thermal fluctuations in the free layer magnetization.
-- At 1 K, thermally activated switching rates are well-characterized and can be controlled
-  to produce unbiased bit streams at GHz rates.
+#### 2.3.2 MTJ-Based True Random Number Generation (TRNG)
+- Stochastic MTJ switching near the critical current can generate **true random bits**.
+  The randomness is thermal, not quantum, so this is a TRNG rather than a QRNG.
+- Caveat: a barrier of 60 k_B T at 300 K becomes ~18,000 k_B T at 1 K, so thermally
+  activated switching all but disappears (see `mtj_resistance_model.py`). A dedicated
+  low-barrier cell or precise near-critical biasing is required; no bit rate is claimed.
 - Suitable for seeding post-quantum cryptographic key generation.
 
 #### 2.3.3 Quantum Key Distribution (QKD) Integration
@@ -118,8 +119,10 @@ Hardware acceleration is critical for embedded and edge deployments.
   over Z_q that maps efficiently onto matrix-vector products.
 - The 256x256 MTJ crossbar implements exactly such products in analog domain (in-memory
   computing), potentially accelerating NTT (Number Theoretic Transform) operations.
-- Energy cost estimate: 256x256 PQC matrix multiply at ~11 fJ/MAC = ~720 pJ total,
-  vs. ~50 nJ for software implementation on ARM Cortex-M4.
+- Caveat: ML-KEM and ML-DSA need exact modular arithmetic (q = 3329 for ML-KEM,
+  q = 8380417 for ML-DSA). Four-level analog MTJ cells cannot provide this without bit
+  slicing and exact analog-to-digital conversion, so no energy advantage is claimed.
+  This is a research direction, not a projection.
 
 **Relevant Hardware (2025):**
 - STMicroelectronics PQC accelerator MCUs (Embedded World 2025)
@@ -166,12 +169,14 @@ Hardware acceleration is critical for embedded and edge deployments.
    GLSVLSI 2025. DOI: 10.1145/3716368.3735264
 
 2. N. Choudhury et al., "Crosstalk-induced Side Channel Threats in Multi-Tenant NISQ Computers,"
-   NDSS 2025. arXiv:2412.10507
+   NDSS 2025. DOI: 10.14722/ndss.2025.242185
 
-3. E. Yocam et al., "Quantum Adversarial Machine Learning and Defense Strategies,"
-   arXiv:2412.12373, Dec. 2024.
+3. E. Yocam et al., "Quantum Adversarial Machine Learning and Defense Strategies: Challenges
+   and Opportunities," in Quantum Science and Technology, Springer, 2026.
+   DOI: 10.1007/978-3-032-11153-1_4
 
-4. A. Upadhyay et al., "Adversarial Robustness in Quantum Machine Learning: A Scoping Review,"
-   Computers, vol. 15, no. 4, p. 233, 2025. DOI: 10.3390/computers15040233
+4. Y. A. Kustiawan and K. I. Ghauth, "Adversarial Robustness in Quantum Machine Learning: A
+   Scoping Review," Computers, vol. 15, no. 4, Art. no. 233, 2026. DOI: 10.3390/computers15040233
 
-5. NIST, "Post-Quantum Cryptography Standards," FIPS 203/204/205, Aug. 2024.
+5. NIST, "Module-Lattice-Based Key-Encapsulation Mechanism Standard," FIPS 203, Aug. 2024.
+   DOI: 10.6028/NIST.FIPS.203

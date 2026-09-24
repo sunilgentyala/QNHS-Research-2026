@@ -239,5 +239,5 @@ MIT License. See [LICENSE](LICENSE) for details.
 Independent Researcher | HCLTech (HCL America Inc.), Dallas, TX 75001, USA
 Email: sunil.gentyala@ieee.org
 ORCID: 0009-0005-2642-3479
-LinkedIn: linkedin.com/in/sunilgentyala
+LinkedIn: linkedin.com/in/sunil-gentyala
 GitHub: github.com/sunilgentyala

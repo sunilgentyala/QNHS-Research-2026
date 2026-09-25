@@ -11,6 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/website-live-00b894)](https://sunilgentyala.github.io/QNHS-Research-2026/)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0005--2642--3479-a6ce39?logo=orcid&logoColor=white)](https://orcid.org/0009-0005-2642-3479)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22942967.svg)](https://doi.org/10.5281/zenodo.22942967)
 
 **[Website](https://sunilgentyala.github.io/QNHS-Research-2026/)** ·
 **[Quick Start](#quick-start)** ·
@@ -185,10 +186,14 @@ Full document: [security/threat_model.md](security/threat_model.md)
 @software{gentyala2026qnhs,
   author = {Gentyala, Sunil},
   title  = {{QNHS}: Quantum-Neuromorphic Hybrid Substrate simulation suite},
-  year   = {2026},
-  url    = {https://github.com/sunilgentyala/QNHS-Research-2026}
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.22942967},
+  url       = {https://github.com/sunilgentyala/QNHS-Research-2026}
 }
 ```
+
+The DOI is the Zenodo concept DOI (all versions). The companion journal manuscript is under review and is not yet citable.
 
 GitHub's **"Cite this repository"** button reads [CITATION.cff](CITATION.cff).
 

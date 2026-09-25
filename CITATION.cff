@@ -1,6 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "QNHS: Quantum-Neuromorphic Hybrid Substrate simulation suite"
+doi: 10.5281/zenodo.22942967
+identifiers:
+- type: doi
+  value: 10.5281/zenodo.22942967
+  description: Zenodo concept DOI (all versions; resolves to the latest archived release)
+- type: doi
+  value: 10.5281/zenodo.22946802
+  description: Zenodo DOI for the archived v1.4.0 release
 abstract: >-
   Simulation code, unit tests and a hardware security threat model for a
   nanoscale quantum-neuromorphic hybrid substrate: energy with cooling cost,

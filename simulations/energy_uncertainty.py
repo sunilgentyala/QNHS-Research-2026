@@ -89,6 +89,80 @@ def sample(n: int = 100_000, mode: str = "reprep", k: int = 4, seed: int = 0) ->
     }
 
 
+# ---------------------------------------------------------------------------
+# Workload-level model: sampling energy versus learning-update energy
+# ---------------------------------------------------------------------------
+# The per-event model above folds MTJ, gate drive and CMOS into one number. At
+# the workload level two costs have different rates:
+#   E_sample  per presynaptic spike: state loading (gate drive), readout
+#             conversion and synaptic transmission (CMOS sample path).
+#   E_learn   per Q-STDP update: 2^k multiply-adds on the stored probabilities,
+#             2^k - 1 rotation-angle recomputations, and rewriting the angle
+#             cells in the MTJ store.
+# Workload energy per presynaptic spike = E_sample + u * E_learn, where u is the
+# number of updates per presynaptic spike measured in the network experiment.
+#
+# E_learn digital logic: lower bound from 2^k int8 multiply-adds at 7 nm
+# (0.07 pJ multiply + 0.007 pJ add, Jouppi et al. 2021, Table 2) = 1.23 pJ for
+# k = 4; upper reference from the measured Loihi pairwise-STDP synaptic update,
+# 120 pJ (Davies et al. 2018). The point value is the geometric mean, 12 pJ.
+# Angle cells: 60 two-bit cells rewritten per update at E_MTJ each.
+# Reference workload: Loihi measured 23.6 pJ per synaptic spike operation and
+# 120 pJ per synaptic update (Davies et al. 2018).
+
+E_LEARN_LO_FJ, E_LEARN_HI_FJ = 1230.0, 120000.0
+E_LEARN_POINT_FJ = float(np.sqrt(E_LEARN_LO_FJ * E_LEARN_HI_FJ))
+LOIHI_SOP_FJ, LOIHI_UPDATE_FJ = 23600.0, 120000.0
+ANGLE_CELLS = 60
+
+
+def sample_energy_fJ(mode: str = "reprep", k: int = 4, p_gate_nW: float = 30.0,
+                     e_cmos_fJ: float = 10.0):
+    return p_gate_nW * 1e-9 * drive_time_s(mode, k) * 1e15 + e_cmos_fJ
+
+
+def learn_energy_fJ(e_update_fJ: float = E_LEARN_POINT_FJ, e_mtj_fJ: float = 0.1,
+                    cells: int = ANGLE_CELLS):
+    return e_update_fJ + cells * e_mtj_fJ
+
+
+def workload_point(u: float, mode: str = "reprep", eps: float = 1.0) -> dict:
+    """Wall-plug workload energy per presynaptic spike at the point values, for
+    the update logic placed at 1 K (charged the Carnot factor) or at 300 K."""
+    es, el = sample_energy_fJ(mode), learn_energy_fJ()
+    f = 1.0 + CARNOT / eps
+    return {"u": u, "eps": eps, "E_sample_fJ": es, "E_learn_fJ": el,
+            "wall_learn_at_1K_pJ": (es + u * el) * f / 1000,
+            "wall_learn_at_300K_pJ": (es * f + u * el) / 1000,
+            "loihi_reference_pJ": (LOIHI_SOP_FJ + u * LOIHI_UPDATE_FJ) / 1000}
+
+
+def workload_sample(u: float, n: int = 100_000, mode: str = "reprep", k: int = 4,
+                    seed: int = 1) -> dict:
+    rng = np.random.default_rng(seed)
+    e_mtj = _logu(rng, 0.1, 10.0, n)
+    p_gate = _logu(rng, 10.0, 100.0, n)
+    e_cmos = _logu(rng, 5.0, 50.0, n)
+    e_upd = _logu(rng, E_LEARN_LO_FJ, E_LEARN_HI_FJ, n)
+    eps = _logu(rng, 0.005, 0.30, n)
+    es = p_gate * 1e-9 * drive_time_s(mode, k) * 1e15 + e_cmos
+    el = e_upd + ANGLE_CELLS * e_mtj
+    f = 1.0 + CARNOT / eps
+    at_1k = (es + u * el) * f
+    at_300k = es * f + u * el
+    ref = LOIHI_SOP_FJ + u * LOIHI_UPDATE_FJ
+    return {
+        "u": u, "n": n,
+        "learn_share_median_1K": float(np.median(u * el / (es + u * el))),
+        "wall_learn_at_1K_pJ_median": float(np.median(at_1k) / 1000),
+        "wall_learn_at_300K_pJ_median": float(np.median(at_300k) / 1000),
+        "sample_share_of_wall_300K_median": float(np.median(es * f / at_300k)),
+        "loihi_reference_pJ": ref / 1000,
+        "p_beats_loihi_learn_at_1K": float(np.mean(at_1k < ref)),
+        "p_beats_loihi_learn_at_300K": float(np.mean(at_300k < ref)),
+    }
+
+
 if __name__ == "__main__":
     for m in ("hold", "reprep"):
         r = sample(mode=m)

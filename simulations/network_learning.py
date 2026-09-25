@@ -4,9 +4,15 @@ Network-level learning with Q-STDP synapses.
 A single leaky integrate-and-fire (LIF) neuron receives N Poisson inputs at the
 same rate. Half of them share a common source, so their spikes are correlated.
 Competitive STDP should strengthen the correlated group and weaken the rest
-(the standard Song-Miller-Abbott setting). We compare five synapse models:
+(the standard Song-Miller-Abbott setting). We compare these synapse models:
 
   classical   : additive STDP on a scalar weight in [0, 1]
+  mult        : multiplicative (soft-bound) STDP on a scalar weight,
+                dw = eta_m K (1 - w) for K > 0 and dw = eta_m K w for K < 0
+                (the mu = 1 limit of Gutig et al. 2003)
+  vanrossum   : additive potentiation, multiplicative depression
+                (van Rossum, Bi and Turrigiano 2000),
+                dw = eta K for K > 0 and dw = eta_d K w for K < 0
   qstdp_mean  : Q-STDP amplitude update, but the synapse transmits <w>
                 (no sampling; isolates the effect of sampling noise)
   qstdp_ideal : Q-STDP, each presynaptic spike transmits a weight sampled
@@ -14,6 +20,7 @@ Competitive STDP should strengthen the correlated group and weaken the rest
   qstdp_hot   : as qstdp_ideal, but the sample comes from the distribution
                 measured after noisy re-preparation at ~1.5 K
   qstdp_mk    : as qstdp_hot with millikelvin noise parameters
+  qstdp_huang : as qstdp_hot with the 1 K benchmark noise case (Huang et al. 2024)
 
 Because the synapses are never entangled with each other, qstdp_ideal is
 equivalent in distribution to a classical stochastic synapse that stores the
@@ -47,7 +54,12 @@ class NetConfig:
     A_minus: float = 0.21
     tau_ms: float = 20.0
     eta_classical: float = 0.01
+    eta_mult: float = 0.02          # matches the additive step at w = 0.5
+    eta_vr_dep: float = 0.02        # van Rossum depression rate, matched at w = 0.5
     refresh: int = 5                # recompute noisy distribution every N spikes per synapse
+
+
+SCALAR_MODELS = ("classical", "mult", "vanrossum")
 
 
 def _inputs(cfg: NetConfig, rng: np.random.Generator) -> np.ndarray:
@@ -77,7 +89,9 @@ def run(model: str, cfg: NetConfig = NetConfig(), seed: int = 0) -> dict:
     init = np.random.default_rng(1000 + seed).dirichlet(np.ones(2 ** cfg.k), size=n)
     alpha = np.sqrt(init)                                   # Q-STDP amplitudes
     w_cl = (init * basis).sum(axis=1)                        # classical weights, same start
-    noise = {"qstdp_hot": NoiseModel.hot_qubit(), "qstdp_mk": NoiseModel.millikelvin()}.get(model)
+    scalar = model in SCALAR_MODELS
+    noise = {"qstdp_hot": NoiseModel.hot_qubit(), "qstdp_mk": NoiseModel.millikelvin(),
+             "qstdp_huang": NoiseModel.huang_1k()}.get(model)
     noisy = [None] * n
     since = np.full(n, 10 ** 9)
 
@@ -85,11 +99,19 @@ def run(model: str, cfg: NetConfig = NetConfig(), seed: int = 0) -> dict:
         return alpha[i] ** 2 / np.sum(alpha[i] ** 2)
 
     def update(i, dt):
+        nonlocal n_updates
         K = _kernel(cfg, dt)
         if K == 0.0:
             return
+        n_updates += 1
         if model == "classical":
             w_cl[i] = np.clip(w_cl[i] + cfg.eta_classical * K, 0.0, 1.0)
+        elif model == "mult":
+            f = (1.0 - w_cl[i]) if K > 0 else w_cl[i]
+            w_cl[i] = np.clip(w_cl[i] + cfg.eta_mult * K * f, 0.0, 1.0)
+        elif model == "vanrossum":
+            dw = cfg.eta_classical * K if K > 0 else cfg.eta_vr_dep * K * w_cl[i]
+            w_cl[i] = np.clip(w_cl[i] + dw, 0.0, 1.0)
         else:
             mean = float(np.dot(probs(i), basis))
             a = alpha[i] + cfg.eta * K * (basis - mean) * alpha[i]
@@ -100,12 +122,15 @@ def run(model: str, cfg: NetConfig = NetConfig(), seed: int = 0) -> dict:
     last_pre = np.full(n, -1e9)
     last_post = -1e9
     n_post = 0
+    n_updates = 0
+    n_pre = 0
     trace_sel = []
     for t in range(steps):
         tm = t * cfg.dt_ms
         v *= decay
         for i in np.flatnonzero(spikes[t]):
-            if model == "classical":
+            n_pre += 1
+            if scalar:
                 w = w_cl[i]
             elif model == "qstdp_mean":
                 w = float(np.dot(probs(i), basis))
@@ -132,9 +157,9 @@ def run(model: str, cfg: NetConfig = NetConfig(), seed: int = 0) -> dict:
                     # time step caused this spike, so count it as causal (dt/2).
                     update(i, max(tm - last_pre[i], 0.5 * cfg.dt_ms))
         if t % 1000 == 0:
-            w_now = w_cl if model == "classical" else (alpha ** 2 / (alpha ** 2).sum(1, keepdims=True)) @ basis
+            w_now = w_cl if scalar else (alpha ** 2 / (alpha ** 2).sum(1, keepdims=True)) @ basis
             trace_sel.append(float(w_now[: n // 2].mean() - w_now[n // 2:].mean()))
-    w_end = w_cl if model == "classical" else (alpha ** 2 / (alpha ** 2).sum(1, keepdims=True)) @ basis
+    w_end = w_cl if scalar else (alpha ** 2 / (alpha ** 2).sum(1, keepdims=True)) @ basis
     p_end = alpha ** 2 / (alpha ** 2).sum(1, keepdims=True)
     ent = -(p_end * np.log2(np.clip(p_end, 1e-12, None))).sum(1)
     return {
@@ -144,6 +169,7 @@ def run(model: str, cfg: NetConfig = NetConfig(), seed: int = 0) -> dict:
         "w_corr": float(w_end[: n // 2].mean()),
         "w_uncorr": float(w_end[n // 2:].mean()),
         "post_rate_hz": n_post / cfg.T_s,
+        "updates_per_pre_spike": n_updates / max(n_pre, 1),
         "entropy_corr": float(ent[: n // 2].mean()),
         "entropy_uncorr": float(ent[n // 2:].mean()),
         "selectivity_trace": trace_sel,

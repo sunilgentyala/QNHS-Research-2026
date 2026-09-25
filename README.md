@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/sunilgentyala/QNHS-Research-2026/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/sunilgentyala/QNHS-Research-2026?color=6c5ce7)](https://github.com/sunilgentyala/QNHS-Research-2026/releases)
-[![Tests](https://img.shields.io/badge/tests-93%20passing-2ea44f)](tests/results/test_results.txt)
+[![Tests](https://img.shields.io/badge/tests-102%20passing-2ea44f)](tests/results/test_results.txt)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776ab?logo=python&logoColor=white)](requirements.txt)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/website-live-00b894)](https://sunilgentyala.github.io/QNHS-Research-2026/)
@@ -40,7 +40,7 @@ so they can be checked rather than taken on trust, including the numbers that co
 | **33%** | refrigerator efficiency (fraction of Carnot) needed just to break even with the GPU reference |
 | **2^k states** | weight distribution per synapse with k qubits (16 states for k = 4) |
 | **~2 µs** | coherence demonstrated for silicon qubits above 1 K (Yang et al., Nature 2020), versus a 10 ms spike window: the main open gap |
-| **90 / 90** | unit tests passing |
+| **102 / 102** | unit tests passing |
 
 ## Architecture
 
@@ -72,7 +72,7 @@ cd QNHS-Research-2026
 pip install -r requirements.txt
 
 python run_all_simulations.py     # all four models + tests + figures/*.png
-python -m pytest tests/ -v        # 93 unit tests
+python -m pytest tests/ -v        # 102 unit tests
 ```
 
 Each model also runs on its own, from any directory:
@@ -130,9 +130,12 @@ The 1 µs MWPM decoder cycle fits 10,000 times into a 10 ms spike window.
 | Study | Module | Main result |
 |-------|--------|-------------|
 | Re-preparation under noise | `reprep_noise.py` | Density-matrix simulation of the 29-gate (k = 4) loading circuit. With the original pessimistic ~1.5 K model the sampled distribution is off by TVD 0.19, but the mean weight by only 0.017. With the 1 K fidelities of Huang et al. (Nature 2024), mapped to channel parameters, TVD falls to 0.066 (k = 4) and 0.024 (k = 2). Gate and readout errors, not T2, set the floor. |
-| Network learning | `network_learning.py` | 20-input LIF neuron, 5 seeds, 200 s. Q-STDP learns input correlations (selectivity 0.39 to 0.41 vs 0.47 classical) with or without 1 K noise; weight entropy drops from 3.4 to 1.7 bits only on learned synapses. |
+| Network learning | `network_learning.py` | 20-input LIF neuron, 5 seeds, 200 s, eight synapse models. Q-STDP learns input correlations (selectivity 0.39 to 0.41) with or without 1 K noise, including the 1 K (Huang) case (0.395); weight entropy drops from 3.4 to 1.7 bits only on learned synapses. Classical weight-dependent baselines (multiplicative, van Rossum) are included: van Rossum STDP reaches 0.49 and stays more selective than Q-STDP at every drive tested, so Q-STDP has no stability advantage. A learning-rate sweep shows that the high-drive collapse of additive STDP is partly rate dependent. |
 | Energy uncertainty | `energy_uncertainty.py` | 200,000 Monte Carlo samples. QNHS beats a 10 pJ GPU reference in 2.5% of samples in hold mode and in none in re-preparation mode (67 fJ per event at the point values, since v1.4.0 charges CNOTs their 100 ns); refrigerator efficiency dominates (Spearman 0.81 to 0.82). |
 | Poisoning | `poisoning.py` | A 5% share of attacker-timed spikes moves the mean weight 0.46 to 0.61. Update clipping removes about 60% of the shift; a binomial timing test detects it with 98% probability in 1,000 pairs. |
+| Shared sampling pool | `sampling_pool.py` | Re-preparation registers are transient, so a pool of time-multiplexed engines can serve all synapses. Erlang C sizing (P(wait) < 1%): 161 four-qubit engines (644 qubits) serve a 256x256 crossbar at 10 Hz with the measured ~0.2 ms 1 K event time, versus 262,144 dedicated qubits. |
+| Coherent hold | `coherent_hold.py` | The Q-STDP update is nonlinear in the state, so no quantum channel implements it. With the mean supplied classically, an ancilla filter (16 Ry + 16 CNOT for k = 4, 2.1 us) succeeds with probability >= 0.986 at c = 0.01. |
+| Workload energy | `energy_uncertainty.py` | Separates sampling energy (67 fJ, re-preparation) from learning-update energy (12 pJ, bounded by 7 nm arithmetic and the measured Loihi update). Learning is 99.6% of device energy. Against measured Loihi energy the design never wins with the update logic at 1 K and wins in 17% of samples with it at 300 K. |
 | MTJ TRNG at 1 K | `mtj_trng.py` | Holding P(switch) = 0.50 +/- 0.01 needs a current window of 2.3e-5 (relative) at 1 K vs 1.7e-3 at 300 K, 72x tighter. |
 
 The ranges and assumptions behind each study are listed in the module docstrings.
@@ -161,7 +164,7 @@ QNHS-Research-2026/
 │   ├── qstdp_simulation.py      # Q-STDP amplitude learning
 │   ├── mtj_resistance_model.py  # PMA-MTJ four-state model
 │   └── surface_code_analysis.py # distance-d surface code coherence
-├── tests/                       # 93 unit tests + results/ snapshots
+├── tests/                       # 102 unit tests + results/ snapshots
 ├── results/extended_results.json
 ├── references/references.bib    # 15 references, each checked against Crossref
 ├── security/threat_model.md     # hardware security threat model
@@ -193,7 +196,7 @@ Full document: [security/threat_model.md](security/threat_model.md)
 }
 ```
 
-The DOI is the Zenodo concept DOI (all versions). The companion journal manuscript is under review and is not yet citable.
+The DOI is the Zenodo concept DOI (all versions). A companion manuscript is in preparation and is not yet citable.
 
 GitHub's **"Cite this repository"** button reads [CITATION.cff](CITATION.cff).
 

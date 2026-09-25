@@ -8,6 +8,9 @@ Writes every number used in the analysis to results/extended_results.json.
   E3  Monte Carlo energy uncertainty (hold and re-preparation modes)
   E4  Q-STDP poisoning: attack effect, rate-limit defense, detection power
   E5  MTJ TRNG current-precision window versus temperature
+  E6  shared sampling-engine pool for re-preparation mode
+  E7  coherent-hold feasibility: nonlinearity and ancilla-filter cost
+  E8  workload energy: sampling versus learning-update energy
 
 Usage: python run_extended_experiments.py [--quick]
 """
@@ -23,7 +26,7 @@ REPO = os.path.dirname(os.path.abspath(__file__))
 os.chdir(REPO)
 sys.path.insert(0, REPO)
 
-from simulations import energy_uncertainty, mtj_trng, poisoning                 # noqa: E402
+from simulations import coherent_hold, energy_uncertainty, mtj_trng, poisoning, sampling_pool  # noqa: E402
 from simulations.network_learning import NetConfig, run as net_run             # noqa: E402
 from simulations.reprep_noise import NoiseModel, evaluate, prep_duration_ns    # noqa: E402
 
@@ -64,7 +67,8 @@ def e1():
 def e2():
     seeds = range(2 if QUICK else 5)
     T = 60.0 if QUICK else 200.0
-    models = ("classical", "qstdp_mean", "qstdp_ideal", "qstdp_hot", "qstdp_mk")
+    models = ("classical", "mult", "vanrossum", "qstdp_mean", "qstdp_ideal", "qstdp_mk", "qstdp_hot",
+              "qstdp_huang")
     main = {}
     for m in models:
         runs = [net_run(m, NetConfig(T_s=T, g=0.2), seed=s) for s in seeds]
@@ -74,6 +78,8 @@ def e2():
             "w_corr_mean": float(np.mean([r["w_corr"] for r in runs])),
             "w_uncorr_mean": float(np.mean([r["w_uncorr"] for r in runs])),
             "post_rate_hz_mean": float(np.mean([r["post_rate_hz"] for r in runs])),
+            "updates_per_pre_spike_mean": float(np.mean([r["updates_per_pre_spike"] for r in runs])),
+            "per_seed_selectivity": [r["selectivity"] for r in runs],
             "entropy_corr_mean": float(np.mean([r["entropy_corr"] for r in runs])),
             "entropy_uncorr_mean": float(np.mean([r["entropy_uncorr"] for r in runs])),
             "trace_mean": list(np.mean([r["selectivity_trace"] for r in runs], axis=0)),
@@ -81,11 +87,29 @@ def e2():
     drive = {}
     for g in (0.15, 0.2, 0.25, 0.3, 0.35):
         drive[g] = {}
-        for m in ("classical", "qstdp_mean"):
+        for m in ("classical", "mult", "vanrossum", "qstdp_mean"):
             runs = [net_run(m, NetConfig(T_s=T, g=g), seed=s) for s in range(3)]
             drive[g][m] = {"selectivity_mean": float(np.mean([r["selectivity"] for r in runs])),
                            "post_rate_hz_mean": float(np.mean([r["post_rate_hz"] for r in runs]))}
-    return {"seeds": len(list(seeds)), "T_s": T, "g": 0.2, "main": main, "drive_sweep": drive}
+    # Learning-rate sensitivity: the drive-sweep ranking depends on the rate.
+    rates = {"classical": ("eta_classical", (0.005, 0.01, 0.02)),
+             "mult": ("eta_mult", (0.01, 0.02, 0.04)),
+             "vanrossum": (("eta_classical", "eta_vr_dep"), (0.5, 1.0, 2.0)),
+             "qstdp_mean": ("eta", (0.025, 0.05, 0.1))}
+    rate = {}
+    for g in (0.2, 0.3):
+        rate[g] = {}
+        for m, (field, vals) in rates.items():
+            rate[g][m] = {}
+            for v in vals:
+                if isinstance(field, tuple):
+                    cfg = NetConfig(T_s=T, g=g, eta_classical=0.01 * v, eta_vr_dep=0.02 * v)
+                else:
+                    cfg = NetConfig(T_s=T, g=g, **{field: v})
+                runs = [net_run(m, cfg, seed=s) for s in range(3)]
+                rate[g][m][str(v)] = float(np.mean([r["selectivity"] for r in runs]))
+    return {"seeds": len(list(seeds)), "T_s": T, "g": 0.2, "main": main, "drive_sweep": drive,
+            "rate_sensitivity": rate}
 
 
 def e3():
@@ -112,6 +136,30 @@ def e5():
     return [mtj_trng.window(T) for T in (300.0, 77.0, 20.0, 4.0, 1.0)]
 
 
+def e6():
+    out = {}
+    for n, k, label in ((256 * 256, 4, "256x256_k4"), (64 * 64, 2, "64x64_k2")):
+        out[label] = {}
+        for svc, tau in (("1K_measured", sampling_pool.service_time_s(k)),
+                         ("fast_target", sampling_pool.service_time_s(k, 1e-6, 1e-6))):
+            out[label][svc] = sampling_pool.size_pool(n, 10.0, k, tau).__dict__
+    return out
+
+
+def e7():
+    return coherent_hold.filter_cost(k=4)
+
+
+def e8(u):
+    out = {"u_source": "Q-STDP, 1 K (Huang) noise, g = 0.2", "u": u,
+           "E_learn_bounds_fJ": [energy_uncertainty.E_LEARN_LO_FJ, energy_uncertainty.E_LEARN_HI_FJ]}
+    for mode in ("hold", "reprep"):
+        out[mode] = {"point_ideal_fridge": energy_uncertainty.workload_point(u, mode, eps=1.0),
+                     "point_eps_2pct": energy_uncertainty.workload_point(u, mode, eps=0.02),
+                     "mc": energy_uncertainty.workload_sample(u, n=20_000 if QUICK else 200_000, mode=mode)}
+    return out
+
+
 if __name__ == "__main__":
     results = {"quick": QUICK}
     for name, fn in (("E1_reprep_noise", e1), ("E2_network_learning", e2), ("E3_energy_uncertainty", e3),
@@ -119,6 +167,10 @@ if __name__ == "__main__":
         t0 = time.time()
         results[name] = fn()
         print(f"{name} done in {time.time() - t0:.1f} s", flush=True)
+    for name, fn in (("E6_sampling_pool", e6), ("E7_coherent_hold", e7)):
+        results[name] = fn()
+    u = results["E2_network_learning"]["main"]["qstdp_huang"]["updates_per_pre_spike_mean"]
+    results["E8_workload_energy"] = e8(u)
     os.makedirs("results", exist_ok=True)
     with open("results/extended_results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, default=float)

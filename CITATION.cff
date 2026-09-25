@@ -19,8 +19,8 @@ authors:
     email: sunil.gentyala@ieee.org
     orcid: "https://orcid.org/0009-0005-2642-3479"
     affiliation: "HCLTech (HCL America Inc.)"
-version: 1.4.0
-date-released: 2026-09-24
+version: 1.5.0
+date-released: 2026-09-25
 license: MIT
 repository-code: "https://github.com/sunilgentyala/QNHS-Research-2026"
 url: "https://sunilgentyala.github.io/QNHS-Research-2026/"

@@ -196,7 +196,7 @@ Full document: [security/threat_model.md](security/threat_model.md)
 }
 ```
 
-The DOI is the Zenodo concept DOI (all versions). A companion manuscript is in preparation and is not yet citable.
+The DOI is the Zenodo concept DOI (all versions). A companion manuscript is under peer review and is not yet citable.
 
 GitHub's **"Cite this repository"** button reads [CITATION.cff](CITATION.cff).
 
